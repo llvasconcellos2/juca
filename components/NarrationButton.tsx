@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 interface NarrationButtonProps {
   text: string;
+  choicesText: string;
   nodeId: string;
 }
 
-export default function NarrationButton({ text, nodeId }: NarrationButtonProps) {
+export default function NarrationButton({ text, choicesText, nodeId }: NarrationButtonProps) {
   const [speaking, setSpeaking] = useState(false);
   const [supported, setSupported] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -34,16 +35,26 @@ export default function NarrationButton({ text, nodeId }: NarrationButtonProps) 
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "pt-BR";
-    utterance.rate = 0.92;
-    utterance.pitch = 1;
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    utteranceRef.current = utterance;
+    const sceneUtterance = new SpeechSynthesisUtterance(text);
+    sceneUtterance.lang = "pt-BR";
+    sceneUtterance.rate = 0.92;
+    sceneUtterance.pitch = 1;
 
+    const choicesUtterance = new SpeechSynthesisUtterance(choicesText);
+    choicesUtterance.lang = "pt-BR";
+    choicesUtterance.rate = 0.92;
+    choicesUtterance.pitch = 1;
+    choicesUtterance.onend = () => setSpeaking(false);
+    choicesUtterance.onerror = () => setSpeaking(false);
+
+    sceneUtterance.onend = () => {
+      window.speechSynthesis.speak(choicesUtterance);
+    };
+    sceneUtterance.onerror = () => setSpeaking(false);
+
+    utteranceRef.current = sceneUtterance;
     window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.speak(sceneUtterance);
     setSpeaking(true);
   }
 

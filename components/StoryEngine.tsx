@@ -26,6 +26,10 @@ export default function StoryEngine() {
   const node = story.nodes[currentId];
   const sceneLabel = SCENE_LABELS[currentId] ?? "Cena";
 
+  const choicesText = node.isEnding
+    ? "Fim da história! Para jogar novamente, pressione o botão Jogar novamente."
+    : `O que Juca faz? ${node.choices.map((c, i) => `Opção ${i + 1}: ${c.label}`).join(". ")}.`;
+
   useEffect(() => {
     headingRef.current?.focus();
   }, [currentId]);
@@ -83,16 +87,18 @@ export default function StoryEngine() {
         >
           {/* Scene card */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl backdrop-blur-sm mb-6">
+            <div className="flex justify-end mb-4">
+              <NarrationButton
+                text={node.text}
+                choicesText={choicesText}
+                nodeId={currentId}
+              />
+            </div>
             <SceneView
               text={node.text}
               headingRef={headingRef}
               sceneLabel={sceneLabel}
             />
-          </div>
-
-          {/* Narration */}
-          <div className="mb-6 flex justify-end">
-            <NarrationButton text={node.text} nodeId={currentId} />
           </div>
 
           {/* Choices or restart */}

@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Juca e a Caça ao Tesouro do Rio
 
-## Getting Started
+História interativa baseada em escolhas, **acessível a pessoas com deficiência visual — e feita para ser usada por todos**. Você lê (ou ouve) uma cena e escolhe, por botões, o que acontece a seguir.
 
-First, run the development server:
+A primeira história acompanha **Juca**, o jacaré jovem e cego do Rio Cachoeira, em Joinville, que encontra tesouros usando faro e audição. Público de 7 a 14 anos, em português.
+
+## Acessibilidade primeiro
+
+Esta é a premissa inegociável do projeto: a experiência precisa **funcionar de verdade** com leitores de tela (NVDA, JAWS, VoiceOver, Narrator) e navegação por teclado — não apenas "ser compatível".
+
+- Escolhas são `<button>` reais, navegáveis por **Tab** e acionáveis por **Enter/Espaço**.
+- Ao trocar de cena, o foco vai para o início do texto novo, para o leitor de tela anunciar a cena.
+- Narração em voz alta em pt-BR (Web Speech API) via botão "Ouvir cena".
+- Skip link, alto contraste, foco sempre visível e nenhuma informação transmitida só por cor.
+
+## Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router) · React 19 · TypeScript
+- Tailwind CSS v4 (config CSS-first, sem `tailwind.config.js`)
+- Gerenciador de pacotes: **pnpm**
+
+## Como rodar
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `pnpm dev` — servidor de desenvolvimento
+- `pnpm build` — build de produção
+- `pnpm start` — roda o build de produção
+- `pnpm lint` — ESLint
+- `pnpm typecheck` — checagem de tipos
 
-## Learn More
+### Verificação manual (acessibilidade)
 
-To learn more about Next.js, take a look at the following resources:
+`verify-juca.mjs` é um script Playwright que percorre a história nos dois ramos, confere afordâncias de acessibilidade e tira screenshots em desktop e mobile. Com o dev server no ar:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+node verify-juca.mjs
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Conteúdo separado do motor
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+O motor (`components/`) é genérico; o conteúdo vive em `data/historia-juca.json` como um grafo de nós (cada nó tem `text`, `isEnding` e `choices`). Para editar ou ampliar a história, mexa apenas no JSON. Os detalhes de arquitetura e o passo a passo para adicionar cenas/histórias estão em [`CLAUDE.md`](CLAUDE.md); o roteiro-fonte está em [`roteiro.md`](roteiro.md).

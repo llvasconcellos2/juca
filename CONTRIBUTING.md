@@ -38,8 +38,8 @@ pnpm build        # garante que compila
 **Testes automatizados:** não configurados ainda (TODO). Há apenas uma verificação manual com Playwright que percorre a história de ponta a ponta e confere afordâncias de acessibilidade:
 
 ```bash
-pnpm dev              # em um terminal
-node verify-juca.mjs  # em outro, depois que localhost:3000 subir
+pnpm dev                             # em um terminal
+node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 ```
 
 ## 4. Portão de acessibilidade (obrigatório)
@@ -57,29 +57,33 @@ Este é o coração do projeto. **Nenhuma contribuição que afete a UI é aceit
 
 ## 5. Contribuindo com conteúdo (novas histórias/cenas)
 
-O conteúdo é **totalmente separado da engine**: histórias vivem em `data/*.json` (tipadas por `lib/types.ts`), nunca dentro dos componentes. Uma história é um grafo de nós — um nó inicial (`start`) e um mapa `nodes`; cada nó tem `text`, `isEnding` e uma lista de `choices` com `label` (rótulo do botão) e `target` (id do próximo nó).
+O conteúdo é **totalmente separado da engine**: cada história é autocontida em `stories/<slug>/content.json` (tipada por `lib/types.ts`), nunca dentro dos componentes. Uma história é um grafo de nós — um nó inicial (`start`) e um mapa `nodes`; cada nó tem `label` (rótulo de acessibilidade), `text`, `isEnding` e uma lista de `choices` com `label` (rótulo do botão) e `target` (id do próximo nó). O JSON também traz `title`, `subtitle`, `choicesPrompt` e `shareImage`.
 
 ```jsonc
 {
+  "title": "Título",
+  "subtitle": "Subtítulo curto",
+  "choicesPrompt": "O que Juca faz?",
   "start": "inicio",
   "nodes": {
     "inicio": {
+      "label": "Início da aventura",
       "text": "Parágrafos...\n\nSeparados por linha em branco.",
       "isEnding": false,
       "choices": [{ "label": "Texto do botão", "target": "id_do_proximo_no" }]
     },
-    "um_final": { "text": "...\n\nFim.", "isEnding": true, "choices": [] }
+    "um_final": { "label": "Final: ...", "text": "...\n\nFim.", "isEnding": true, "choices": [] }
   }
 }
 ```
 
 **Adicionar uma CENA** a uma história existente:
 
-1. Em `data/historia-juca.json`, adicione uma entrada em `nodes` com um `id` novo (`text`, `isEnding`, `choices`) e aponte para ela a partir do `target` de alguma escolha.
-2. Adicione o rótulo humano correspondente em **`SCENE_LABELS`** (em `components/StoryEngine.tsx`) para o **mesmo `id`** — usado no heading/narração. `SCENE_LABELS` e os `id`s do JSON devem ficar sempre em sincronia.
+1. Em `stories/<slug>/content.json`, adicione uma entrada em `nodes` com um `id` novo (`label`, `text`, `isEnding`, `choices`) e aponte para ela a partir do `target` de alguma escolha.
+2. O `label` do próprio nó é o rótulo de acessibilidade (heading que recebe o foco/narração) — não há mais uma tabela separada para sincronizar.
 3. Todo `target` deve apontar para um `id` existente; nó final tem `isEnding: true` e `choices: []`.
 
-**Adicionar uma HISTÓRIA nova:** crie um novo JSON em `data/` seguindo o mesmo schema. (Seleção/roteamento de histórias ainda não existe — ver TODOs no CLAUDE.md.)
+**Adicionar uma HISTÓRIA nova:** crie `stories/<slug>/` com `content.json`, `cover.png` e `index.ts` (que monta o `Story`), e registre-a em `lib/stories.ts`. A rota `/historias/<slug>` e o card na tela de seleção passam a funcionar automaticamente. Ver o passo a passo no [CLAUDE.md](CLAUDE.md).
 
 **Regras de conteúdo:** PT-BR é o idioma padrão; linguagem adequada ao público de **7 a 14 anos**; texto pensado para **narração** (sem CAIXA ALTA solta nem emojis decorativos).
 
@@ -112,7 +116,7 @@ Cole na descrição do seu PR:
 - [ ] `pnpm lint` passa
 - [ ] `pnpm typecheck` passa
 - [ ] `pnpm build` passa
-- [ ] Verificação manual (`node verify-juca.mjs`) executada, quando aplicável
+- [ ] Verificação manual (`node script-testing/verify-juca.mjs`) executada, quando aplicável
 - [ ] Escolhas são <button> reais, navegáveis por Tab e Enter/Espaço, com rótulo claro
 - [ ] Ao trocar de cena o foco vai para o texto novo (heading tabindex="-1" + .focus())
 - [ ] Nenhuma informação só por cor; alto contraste; sem armadilhas de teclado

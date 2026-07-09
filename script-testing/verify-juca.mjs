@@ -1,6 +1,9 @@
 import { chromium } from '@playwright/test';
 
 const BASE = 'http://localhost:3000';
+// A história do Juca deixou de ficar em "/" (agora é a tela de seleção);
+// mora na rota da história.
+const STORY_URL = `${BASE}/historias/juca-tesouro-do-rio`;
 const shots = [];
 
 async function shot(page, name) {
@@ -13,7 +16,7 @@ async function shot(page, name) {
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(STORY_URL, { waitUntil: 'networkidle' });
 console.log('✅ Page loaded');
 await shot(page, '01-inicio');
 
@@ -64,7 +67,7 @@ const overflow = await page.evaluate(() => document.body.scrollWidth > document.
 console.log(`🔍 Horizontal overflow at 640px: ${overflow}`);
 
 // Keyboard: tab to first choice button
-await page.goto(BASE, { waitUntil: 'networkidle' });
+await page.goto(STORY_URL, { waitUntil: 'networkidle' });
 await page.keyboard.press('Tab');
 const skipFocused = await page.evaluate(() => document.activeElement?.textContent?.trim());
 console.log(`🔍 First Tab focus: "${skipFocused}"`);

@@ -11,7 +11,10 @@ Esta é a premissa inegociável do projeto: a experiência precisa **funcionar d
 - Escolhas são `<button>` reais, navegáveis por **Tab** e acionáveis por **Enter/Espaço**.
 - Ao trocar de cena, o foco vai para o início do texto novo, para o leitor de tela anunciar a cena.
 - Narração em voz alta em pt-BR (Web Speech API) via botão "Ouvir cena".
+- Botão "Compartilhar" (Web Share API com fallback de copiar link) em todas as telas.
 - Skip link, alto contraste, foco sempre visível e nenhuma informação transmitida só por cor.
+
+O projeto suporta **múltiplas histórias**: a home é uma tela de seleção e cada história tem sua própria rota (`/historias/<slug>`).
 
 ## Stack
 
@@ -38,12 +41,12 @@ Abra <http://localhost:3000>.
 
 ### Verificação manual (acessibilidade)
 
-`verify-juca.mjs` é um script Playwright que percorre a história nos dois ramos, confere afordâncias de acessibilidade e tira screenshots em desktop e mobile. Com o dev server no ar:
+`script-testing/verify-juca.mjs` é um script Playwright que percorre a história nos dois ramos, confere afordâncias de acessibilidade e tira screenshots em desktop e mobile. Com o dev server no ar:
 
 ```bash
-node verify-juca.mjs
+node script-testing/verify-juca.mjs
 ```
 
 ## Conteúdo separado do motor
 
-O motor (`components/`) é genérico; o conteúdo vive em `data/historia-juca.json` como um grafo de nós (cada nó tem `text`, `isEnding` e `choices`). Para editar ou ampliar a história, mexa apenas no JSON. Os detalhes de arquitetura e o passo a passo para adicionar cenas/histórias estão em [`CLAUDE.md`](CLAUDE.md); o roteiro-fonte está em [`roteiro.md`](roteiro.md).
+O motor (`components/`) é genérico; cada história é autocontida em `stories/<slug>/` — `content.json` (grafo de nós, onde cada nó tem `text`, `isEnding` e `choices`), `cover.png` (capa) e `roteiro.md` (roteiro-fonte). Um registro em `lib/stories.ts` lista as histórias. Para editar a história do Juca, mexa em [`stories/juca-tesouro-do-rio/content.json`](stories/juca-tesouro-do-rio/content.json); o roteiro-fonte fica em [`stories/juca-tesouro-do-rio/roteiro.md`](stories/juca-tesouro-do-rio/roteiro.md). Os detalhes de arquitetura e o passo a passo para adicionar cenas/histórias estão em [`CLAUDE.md`](CLAUDE.md).

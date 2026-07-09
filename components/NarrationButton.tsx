@@ -1,30 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 interface NarrationButtonProps {
   text: string;
   choicesText: string;
-  nodeId: string;
 }
 
-export default function NarrationButton({ text, choicesText, nodeId }: NarrationButtonProps) {
+// speechSynthesis support never changes at runtime, so there's nothing to subscribe to —
+// this only exists to read a client-only value without a hydration mismatch.
+function subscribe() {
+  return () => {};
+}
+
+export default function NarrationButton({ text, choicesText }: NarrationButtonProps) {
   const [speaking, setSpeaking] = useState(false);
-  const [supported, setSupported] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const supported = useSyncExternalStore(
+    subscribe,
+    () => "speechSynthesis" in window,
+    () => false
+  );
 
+  // Cancel any ongoing narration when this instance unmounts. The parent remounts this
+  // component (via `key`) on scene change, so unmount = scene change.
   useEffect(() => {
-    setSupported(typeof window !== "undefined" && "speechSynthesis" in window);
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
   }, []);
-
-  // Stop narration when the scene changes
-  useEffect(() => {
-    if (speaking) {
-      window.speechSynthesis.cancel();
-      setSpeaking(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeId]);
 
   if (!supported) return null;
 

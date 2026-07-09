@@ -1,10 +1,14 @@
 {
   "title": "Juca e a Caça ao Tesouro do Rio",
+  "subtitle": "Uma história interativa de Joinville",
+  "choicesPrompt": "O que Juca faz?",
+  "shareImage": "/juca.png",
   "language": "pt-BR",
   "audience": "7-14",
   "start": "inicio",
   "nodes": {
     "inicio": {
+      "label": "Início da aventura",
       "text": "Era noite no Rio Cachoeira, bem no coração de Joinville, e a lua boiava na água como uma bolacha gigante. Era a noite mais importante do ano: a Grande Caça ao Tesouro do Rio!\n\nJuca, o jacaré mais esperto (e mais cego) de toda a lagoa, chegou abanando o rabo. Dona Quitéria, a capivara organizadora, apitou bem forte.\n\n— Atenção, bicharada! Quem achar o Tesouro do Rio ganha o título de Herói da Lama!\n\nOs outros animais cochicharam baixinho:\n— Coitado do Juca... ele nem enxerga. Como é que vai achar um tesouro?\n\nJuca abriu o maior sorrisão cheio de dentes:\n— Achar tesouro com os olhos? Que nada! Eu tenho um nariz campeão e duas orelhas que escutam até fofoca de minhoca.\n\nO apito tocou de novo e todo mundo saiu nadando feito doido. Só o Juca ficou ali, na beirada, balançando o rabo, pensando por onde começar.",
       "isEnding": false,
       "choices": [
@@ -19,21 +23,25 @@
       ]
     },
     "cena_faro": {
+      "label": "Cena: O faro de Juca",
       "text": "Juca encheu o peito e... fungou tão forte que quase sugou um mosquito desavisado.\n\n— Humm... sinto cheiro de lama, de peixe frito e do chulé do Reginaldo.\n\n— Ei! — reclamou Reginaldo, o sapo, soltando um arroto. — Meu pé é perfumado, viu!\n\nMas no meio daquela zona toda, o Juca pegou um cheirinho diferente: doce, bem docinho, tipo bala de coco. Ele foi seguindo, fungando pela margem, e sem querer esbarrou na garça.\n\n— Foi mal, dona Glória!\n— Hmpf! — a garça ajeitou as penas, toda ofendida.\n\nO cheirinho doce ia ficando mais forte... e mais forte... até o Juca parar com o focinho coladinho num arbusto escuro.",
       "isEnding": false,
       "choices": [{ "label": "Continuar", "target": "final_faro" }]
     },
     "final_faro": {
+      "label": "Final: Herói da Lama",
       "text": "O Juca enfiou o focinho no arbusto e... tcharam! Não era o tesouro. Era um ninho de patinhos perdidos, tremendo de medo no escuro!\n\n— Calma, miudezas. O Juca tá aqui. Subam no meu rabo que eu levo vocês pra casa.\n\nQuando ele chegou na festa com a fileira de patinhos equilibrada no rabo, a mãe pata chorou de alegria e a Dona Quitéria ficou de queixo caído.\n\n— Juca, você não achou o tesouro... — disse ela. — Você achou uma coisa muito melhor!\n\nE foi assim que o jacaré cego virou o Herói da Lama. Porque tesouro de verdade, o Juca aprendeu, a gente acha é com o coração. (E com um nariz bem campeão, claro.)\n\nFim.",
       "isEnding": true,
       "choices": []
     },
     "cena_ouvido": {
+      "label": "Cena: A escuta de Juca",
       "text": "O Juca fechou os olhos (não que fizesse muita diferença) e ficou paradinho, igual estátua de jacaré.\n\n— Shhh — pediu ele. — Tô ouvindo.\n\n— Mas a gente nem falou nada! — disse Tinho, o lambari agitado, dando voltas em volta dele.\n— Você não, Tinho. Eu tô ouvindo o rio.\n\nE o Juca ouvia mesmo: o ploc das gotinhas, o ronco do Gérson dormindo numa pedra e... bem lá no fundo... um tlin, tlin, tlin bem fininho, igual sininho.\n\n— Achei! O tesouro tá fazendo barulho! Me sigam, pessoal!\n\nSó que ninguém se mexeu. Nenhum outro bicho conseguia escutar aquilo.",
       "isEnding": false,
       "choices": [{ "label": "Continuar", "target": "final_ouvido" }]
     },
     "final_ouvido": {
+      "label": "Final: O ouvido do rio",
       "text": "— Confiem no jacaré! — disse Juca, e mergulhou guiado só pelo som.\n\nTlin... tlin... cada vez mais perto. Lá no fundo do rio, presa numa raiz, estava a velha Caixa do Tesouro, com um sininho que tilintava na correnteza. O Juca puxou com os dentes e trouxe pra superfície.\n\nQuando abriu a caixa, tinha doce pra todo mundo — e olha que tinha bicho pra caramba na festa.\n\n— Como você achou lá no escuro? — perguntaram, espantados.\n— Ah, no escuro eu jogo em casa! — riu o Juca. — E presta atenção numa coisa: de vez em quando, pra achar o que a gente procura, é melhor parar de olhar e começar a escutar.\n\nA festa virou a maior farra que o Rio Cachoeira já viu. E o Juca? Virou o ouvido oficial do rio. (E o melhor contador de piada também.)\n\nFim.",
       "isEnding": true,
       "choices": []

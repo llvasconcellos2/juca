@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate-stories": "node script-testing/validate-stories.mjs"
   },
   "dependencies": {
     "next": "16.2.7",

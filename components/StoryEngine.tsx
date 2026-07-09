@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Story } from "@/lib/types";
+import { Effect, Story, StoryVariables } from "@/lib/types";
+import { applyEffects, evaluateCondition } from "@/lib/engine";
 import SceneView from "./SceneView";
 import ChoiceButton from "./ChoiceButton";
 import NarrationButton from "./NarrationButton";
 import ShareButton from "./ShareButton";
+import Hud from "./Hud";
 
 interface StoryEngineProps {
   story: Story;
@@ -17,32 +19,51 @@ export default function StoryEngine({ story }: StoryEngineProps) {
   const s = story.content;
   const storyUrl = `/historias/${story.slug}`;
 
+  const computeInitialVars = useCallback(
+    (): StoryVariables => applyEffects(s.variables ?? {}, s.nodes[s.start]?.onEnter),
+    [s.variables, s.nodes, s.start]
+  );
+
   const [currentId, setCurrentId] = useState<string>(s.start);
+  const [vars, setVars] = useState<StoryVariables>(computeInitialVars);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [visible, setVisible] = useState(true);
 
   const node = s.nodes[currentId];
   const sceneLabel = node.label ?? "Cena";
 
+  const visibleChoices = node.choices.filter(
+    (choice) => !choice.condition || evaluateCondition(vars, choice.condition)
+  );
+
   const choicesText = node.isEnding
     ? "Fim da história! Para jogar novamente, pressione o botão Jogar novamente."
-    : `${s.choicesPrompt} ${node.choices.map((c, i) => `Opção ${i + 1}: ${c.label}`).join(". ")}.`;
+    : `${s.choicesPrompt} ${visibleChoices.map((c, i) => `Opção ${i + 1}: ${c.label}`).join(". ")}.`;
 
   useEffect(() => {
     headingRef.current?.focus();
   }, [currentId]);
 
-  const goTo = useCallback((targetId: string) => {
-    setVisible(false);
-    setTimeout(() => {
-      setCurrentId(targetId);
-      setVisible(true);
-    }, 200);
-  }, []);
+  const goTo = useCallback(
+    (targetId: string, effects?: Effect[]) => {
+      setVisible(false);
+      setTimeout(() => {
+        setVars((prev) => applyEffects(applyEffects(prev, effects), s.nodes[targetId]?.onEnter));
+        setCurrentId(targetId);
+        setVisible(true);
+      }, 200);
+    },
+    [s.nodes]
+  );
 
   const restart = useCallback(() => {
-    goTo(s.start);
-  }, [goTo, s.start]);
+    setVisible(false);
+    setTimeout(() => {
+      setVars(computeInitialVars());
+      setCurrentId(s.start);
+      setVisible(true);
+    }, 200);
+  }, [computeInitialVars, s.start]);
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-8 relative">
@@ -82,6 +103,9 @@ export default function StoryEngine({ story }: StoryEngineProps) {
         </h1>
         <p className="text-sm text-white/50 text-center">{s.subtitle}</p>
       </header>
+
+      {/* HUD (estado leve: dinheiro, tempo, etc.) — persistente, fora da transição de cena */}
+      {s.hud && <Hud hud={s.hud} vars={vars} />}
 
       {/* Main content */}
       <main
@@ -134,11 +158,11 @@ export default function StoryEngine({ story }: StoryEngineProps) {
                 {s.choicesPrompt}
               </p>
               <ul className="space-y-3 list-none p-0">
-                {node.choices.map((choice, i) => (
-                  <li key={choice.target}>
+                {visibleChoices.map((choice, i) => (
+                  <li key={i}>
                     <ChoiceButton
                       label={choice.label}
-                      onClick={() => goTo(choice.target)}
+                      onClick={() => goTo(choice.target, choice.effects)}
                       index={i}
                     />
                   </li>

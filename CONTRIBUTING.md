@@ -30,9 +30,10 @@ Outros comandos: `pnpm build` (build de produção), `pnpm start` (roda o build)
 Rode localmente os comandos reais do projeto:
 
 ```bash
-pnpm lint         # ESLint
-pnpm typecheck    # tsc --noEmit (TypeScript strict)
-pnpm build        # garante que compila
+pnpm lint              # ESLint
+pnpm typecheck         # tsc --noEmit (TypeScript strict)
+pnpm build             # garante que compila
+pnpm validate-stories  # valida o grafo de nós de todas as histórias
 ```
 
 **Testes automatizados:** não configurados ainda (TODO). Há apenas uma verificação manual com Playwright que percorre a história de ponta a ponta e confere afordâncias de acessibilidade:
@@ -48,7 +49,7 @@ Este é o coração do projeto. **Nenhuma contribuição que afete a UI é aceit
 
 - **Escolhas são `<button>` reais** (nunca `div`), navegáveis por **Tab** e acionáveis por **Enter/Espaço**, com rótulo claro e único.
 - **Ao trocar de cena, o foco vai para o início do texto novo** — um heading com `tabindex="-1"` que recebe `.focus()` (ver `headingRef` em `StoryEngine.tsx` / `SceneView.tsx`).
-- **Não usar `aria-live` e movimentação de foco ao mesmo tempo** para o mesmo conteúdo (causa leitura duplicada). O projeto usa gestão de foco; não adicione `aria-live` na mesma região.
+- **Não usar `aria-live` e movimentação de foco ao mesmo tempo** para o mesmo conteúdo (causa leitura duplicada). O projeto usa gestão de foco; não adicione `aria-live` na mesma região. O HUD de estado leve (dinheiro, tempo etc.) é a exceção deliberada: fica numa região **separada** com `aria-live="polite"` — nunca junte HUD e cena na mesma região.
 - **Nenhuma informação transmitida só por cor**; alto contraste; fonte ampliável; sem armadilhas de teclado; foco sempre visível (`:focus-visible`).
 - **Textos escritos para soar bem em narração**: sem CAIXA ALTA solta, sem emojis decorativos no conteúdo lido.
 - **Teste manual mínimo antes do PR:** navegue **100% por teclado** e valide com pelo menos **um leitor de tela** (NVDA, JAWS, VoiceOver ou Narrator).
@@ -85,6 +86,8 @@ O conteúdo é **totalmente separado da engine**: cada história é autocontida 
 
 **Adicionar uma HISTÓRIA nova:** crie `stories/<slug>/` com `content.json`, `cover.png` e `index.ts` (que monta o `Story`), e registre-a em `lib/stories.ts`. A rota `/historias/<slug>` e o card na tela de seleção passam a funcionar automaticamente. Ver o passo a passo no [CLAUDE.md](CLAUDE.md).
 
+**Estado leve (opcional):** uma história pode ter variáveis numéricas (ex.: `dinheiro`, `tempo`) que efeitos alteram (`onEnter` de nó, `effects` de escolha) e que condições usam para esconder escolhas (`condition`). Totalmente opcional e retrocompatível — sem esses campos, a história funciona como sempre funcionou. A engine **nunca** hardcoda nomes de variável; tudo vem do `content.json`. Detalhes completos (formato de efeito/condição, HUD com `format` de exibição, regra de "sempre uma escolha sem custo") estão no [CLAUDE.md](CLAUDE.md#6-formato-de-conteúdo-das-histórias).
+
 **Regras de conteúdo:** PT-BR é o idioma padrão; linguagem adequada ao público de **7 a 14 anos**; texto pensado para **narração** (sem CAIXA ALTA solta nem emojis decorativos).
 
 ## 6. Estilo de código
@@ -116,6 +119,7 @@ Cole na descrição do seu PR:
 - [ ] `pnpm lint` passa
 - [ ] `pnpm typecheck` passa
 - [ ] `pnpm build` passa
+- [ ] `pnpm validate-stories` passa (se mexeu em algum `content.json`)
 - [ ] Verificação manual (`node script-testing/verify-juca.mjs`) executada, quando aplicável
 - [ ] Escolhas são <button> reais, navegáveis por Tab e Enter/Espaço, com rótulo claro
 - [ ] Ao trocar de cena o foco vai para o texto novo (heading tabindex="-1" + .focus())

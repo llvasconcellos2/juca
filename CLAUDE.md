@@ -10,6 +10,8 @@ Plataforma de **ficção interativa baseada em escolhas**, acessível a pessoas 
 
 Primeira história: **"Juca e a Caça ao Tesouro do Rio"** (a Grande Caça ao Tesouro do Rio Cachoeira, em Joinville), estrelando o jacaré **Juca**, jovem e cego, que encontra tesouros usando faro e audição — o próprio herói espelha o público que o projeto quer incluir.
 
+Segunda história: **"Juca e a Corrida do Churrasco"** — Juca precisa ir do Pórtico de Joinville até um churrasco na casa de carnes Don Toro, escolhendo entre ônibus (grátis) e Uber (mais rápido, mas custa dinheiro). É a primeira história com **estado leve** (`dinheiro` e `tempo`); ver seção 6.
+
 - **Público:** 7 a 14 anos.
 - **Idioma:** PT-BR.
 - **Contexto:** projeto social voltado a pessoas com deficiência visual, mas pensado para ser atraente e usado por **todos** — isso é **inclusão**: a mesma experiência serve quem enxerga e quem não enxerga.
@@ -44,6 +46,7 @@ Extraídos de `package.json`:
 - `pnpm start` — roda o build de produção
 - `pnpm lint` — ESLint
 - `pnpm typecheck` — checagem de tipos (`tsc --noEmit`)
+- `pnpm validate-stories` — valida o grafo de nós de **todas** as histórias (`script-testing/validate-stories.mjs`; ver seção 6)
 
 Não há suíte de testes automatizada.
 
@@ -55,6 +58,8 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 ```
 
 **`script-testing/`** guarda os scripts de teste/verificação manual "interessantes" do projeto — os que valem ser mantidos por histórico (como o `verify-juca.mjs`). Ao criar um script útil durante a fase de teste, guarde-o aqui em vez de deixá-lo na raiz.
+
+**Validação de grafo (`script-testing/validate-stories.mjs`):** lê `stories/<slug>/content.json` de toda história registrada e confere, sem precisar de browser: `start` existe; todo `target` de escolha existe; todo nó não-final tem ao menos uma escolha e nós finais não têm nenhuma; nenhum nó fica inalcançável a partir de `start`; nenhum nó fica "travado por condição" (todas as `choices` do nó têm `condition` — nesse caso o jogador pode ficar sem opção). Rode com `pnpm validate-stories` (não precisa de dev server rodando).
 
 ## 5. Estrutura do projeto
 
@@ -69,10 +74,12 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 - `components/ChoiceButton.tsx` — um `<button>` por escolha.
 - `components/NarrationButton.tsx` — narração por voz via Web Speech API (`speechSynthesis`), em pt-BR.
 - `components/ShareButton.tsx` — botão de **compartilhar** (client component); usa a Web Share API (`navigator.share`) com fallback de copiar link. O link aponta sempre para o início da história (`/historias/<slug>`), não para o nó atual. Aparece em todas as cenas.
-- `lib/types.ts` — tipos `Story`, `StoryData`, `StoryNode`, `Choice`.
+- `components/Hud.tsx` — HUD persistente de estado leve (dinheiro, tempo, etc.); só renderiza se `story.content.hud` existir. Região `aria-live="polite"` própria, separada da cena (ver seção 8). Genérico: itera `hud` e formata cada valor via `lib/engine.ts#formatHudValue`, sem conhecer nomes de variável.
+- `lib/types.ts` — tipos `Story`, `StoryData`, `StoryNode`, `Choice`, e os tipos de estado leve `Effect`, `Condition`, `HudItem`, `StoryVariables` (ver seção 6).
+- `lib/engine.ts` — funções puras e agnósticas de conteúdo para o estado leve: `applyEffect`/`applyEffects` (aplica efeitos a um objeto de variáveis), `evaluateCondition` (avalia uma condição), `formatHudValue` (formata um valor para o HUD conforme `HudFormat`). Sem nenhum nome de variável hardcoded.
 - `lib/stories.ts` — **registro** das histórias (`stories`, `getStory(slug)`).
 - `stories/<slug>/` — cada história é **autocontida**:
-  - `content.json` — o grafo de nós + metadados (`title`, `subtitle`, `choicesPrompt`, `shareImage`, e `label` por nó).
+  - `content.json` — o grafo de nós + metadados (`title`, `subtitle`, `choicesPrompt`, `shareImage`, `label` por nó, e opcionalmente `variables`/`hud`/`onEnter`/`condition`/`effects` — ver seção 6).
   - `index.ts` — monta o objeto `Story` (importa `content.json` + `cover.png`).
   - `cover.png` — capa (import otimizado pelo `next/image`, exibição in-app).
   - `roteiro.md` — roteiro-fonte da história + notas de acessibilidade (arquivado junto do conteúdo).
@@ -132,6 +139,44 @@ Regras do formato:
 
 **Princípio:** o motor (`components/`) é **genérico**; o conteúdo (`stories/<slug>/`) é **dados**. Nunca embuta texto de história dentro dos componentes.
 
+### Estado leve (`variables`, `hud`, `onEnter`, `condition`, `effects`)
+
+Uma história pode opcionalmente ter **estado leve** — variáveis numéricas (ex.: `dinheiro`, `tempo`) que mudam conforme o jogador escolhe, e que podem esconder/mostrar escolhas. É **totalmente opcional e retrocompatível**: uma história sem `variables`/`hud` e sem `onEnter`/`condition`/`effects` nos nós funciona exatamente como antes (ex.: `juca-tesouro-do-rio`).
+
+```jsonc
+{
+  // ...campos de sempre (title, subtitle, choicesPrompt, start, nodes)...
+  "variables": { "dinheiro": 30, "tempo": 120 }, // valores iniciais do estado
+  "hud": [
+    { "var": "dinheiro", "label": "Dinheiro", "format": "currency-brl" },
+    { "var": "tempo", "label": "Tempo até o evento", "format": "minutes-hm" }
+  ],
+  "nodes": {
+    "algum_no": {
+      "label": "...",
+      "text": "...",
+      "isEnding": false,
+      "onEnter": [{ "var": "tempo", "op": "-=", "value": 10 }], // aplicado ao ENTRAR no nó
+      "choices": [
+        {
+          "label": "Chamar um Uber (15 reais)",
+          "target": "outro_no",
+          "condition": { "var": "dinheiro", "op": ">=", "value": 15 }, // só aparece se verdadeira
+          "effects": [{ "var": "dinheiro", "op": "-=", "value": 15 }] // aplicado ao ESCOLHER, antes de navegar
+        }
+      ]
+    }
+  }
+}
+```
+
+- **Efeito** (`onEnter` de nó, `effects` de escolha): `{ "var": string, "op": "-=" | "+=" | "=", "value": number }`. Variável ausente é tratada como `0`.
+- **Condição** (`condition` de escolha): `{ "var": string, "op": ">=" | "<=" | "==" | ">" | "<", "value": number }`.
+- **Ordem de aplicação ao escolher:** `effects` da escolha primeiro, depois `onEnter` do nó de destino, só então a cena troca.
+- **Escolhas condicionais:** uma escolha com `condition` falsa simplesmente **não aparece** na lista (nem é lida pela narração). **Sempre garanta pelo menos uma escolha sem `condition`** em todo nó não-final — senão o jogador pode ficar sem opção (`pnpm validate-stories` pega esse erro; ver seção 4).
+- **HUD (`hud`):** lista de `{ var, label, format? }` — cada entrada vira uma pastilha na área de HUD persistente (`components/Hud.tsx`), fora da transição de cena. `format` é opcional (default `"number"`): `"currency-brl"` → `R$ 30`; `"minutes-hm"` → `2h00` / `45min` (`Math.floor(min/60)`h + resto, ou só `Xmin` se < 60). **Valores negativos nunca aparecem no HUD** — são exibidos como `0` (`Math.max(0, valor)`); a variável em si pode ir negativa internamente para fins de lógica/condição, só a exibição é grampeada.
+- **Regra inegociável — engine agnóstica:** `components/` e `lib/engine.ts` **nunca** hardcodam nomes de variável (`"dinheiro"`, `"tempo"`, etc.) nem sabem o que cada `format` "significa" no domínio da história — tudo isso vem do `content.json`. Uma história nova pode inventar qualquer variável sem tocar no motor.
+
 ## 7. Convenções de código
 
 - **TypeScript** em modo `strict`; conteúdo do JSON tipado por `lib/types.ts` (`content as StoryData` em `stories/<slug>/index.ts`).
@@ -149,11 +194,12 @@ Regras do formato:
 - Há **skip link** ("Pular para o conteúdo") e imagens decorativas com `alt=""` / `aria-hidden`.
 - **Narração:** `NarrationButton` fala o texto da cena e depois as escolhas, via `SpeechSynthesisUtterance` encadeados em `pt-BR`; a narração é cancelada ao trocar de cena. O botão só aparece se o navegador suportar `speechSynthesis`.
 - **Compartilhar:** `ShareButton` é um `<button>` real com `aria-label` claro; a confirmação "Link copiado!" fica num `role="status"` **local ao botão** (não na região da cena) — isso não conflita com a regra de não combinar `aria-live` + foco no **conteúdo da cena**.
+- **HUD (estado leve):** `components/Hud.tsx` usa `aria-live="polite"` — é uma região **separada** da cena (a cena usa gestão de foco, nunca `aria-live`). Ao mudar de nó, o HUD pode anunciar a variável alterada enquanto o foco vai para o heading da cena nova, sem duplicar leitura porque são regiões diferentes.
 - **Textos escritos para soar bem em narração:** sem CAIXA ALTA solta, sem emojis decorativos no conteúdo lido.
 
 ## 9. Escopo e roadmap
 
-- **MVP (atual):** a primeira história do Juca rodando, acessível, com narração por Web Speech API e verificação manual via Playwright.
+- **MVP (atual):** duas histórias do Juca rodando, acessíveis, com narração por Web Speech API e verificação manual via Playwright; a segunda história (`juca-churrasco`) introduz o **estado leve** opcional (`variables`/`hud`/`onEnter`/`condition`/`effects`, seção 6).
 - **Futuro (manter engine/conteúdo separados para reaproveitar):** mais histórias e autores; seleção/roteamento de histórias; plataforma reaproveitável.
 - **PLANEJADO — ainda não implementado** (a menos que o código mostre o contrário):
   - Narração por voz de **IA/TTS dedicada** (hoje só há a Web Speech API nativa do navegador).
@@ -168,6 +214,7 @@ Regras do formato:
 - **Não introduzir dependências pesadas** sem necessidade real.
 - **PT-BR é o idioma padrão** do conteúdo; escreva textos que soem bem em narração.
 - **Manter o motor agnóstico de conteúdo** — nada específico de uma história (título, capa, rótulos, prompt) dentro de `components/`; tudo vem de `Story`/`content.json`.
+- **Não hardcodar nomes de variável de estado** (`"dinheiro"`, `"tempo"`, etc.) em `components/` ou `lib/engine.ts` — isso pertence só ao `content.json` de cada história (ver seção 6).
 
 ---
 

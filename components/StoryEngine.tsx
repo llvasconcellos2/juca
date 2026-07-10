@@ -28,6 +28,9 @@ export default function StoryEngine({ story }: StoryEngineProps) {
   const [vars, setVars] = useState<StoryVariables>(computeInitialVars);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [visible, setVisible] = useState(true);
+  // Velocidade da narração (multiplicador). Fica no motor, não no NarrationButton, para
+  // persistir entre trocas de cena (o NarrationButton é remontado via `key` a cada cena).
+  const [narrationRate, setNarrationRate] = useState(1);
 
   const node = s.nodes[currentId];
   const sceneLabel = node.label ?? "Cena";
@@ -124,6 +127,8 @@ export default function StoryEngine({ story }: StoryEngineProps) {
                 key={currentId}
                 text={node.text}
                 choicesText={choicesText}
+                rate={narrationRate}
+                onRateChange={setNarrationRate}
               />
             </div>
             <SceneView

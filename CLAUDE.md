@@ -39,9 +39,11 @@ Versões reais (ver `package.json` / lockfiles):
 
 ## 4. Comandos
 
+**Frontend design:** ao trabalhar em UI/frontend, sempre use o plugin/skills `frontend-design` (direção estética, tipografia, escolhas visuais intencionais) antes de implementar.
+
 Extraídos de `package.json`:
 
-- `pnpm dev` — servidor de desenvolvimento (<http://localhost:3000>)
+- `pnpm dev` — servidor de desenvolvimento (<http://localhost:3000>). **Antes de rodar, sempre confira se já há um dev server ativo na porta 3000** (ex.: checar a porta ou tentar acessar `localhost:3000`) — se já estiver rodando, reaproveite-o em vez de subir uma segunda instância.
 - `pnpm build` — build de produção
 - `pnpm start` — roda o build de produção
 - `pnpm lint` — ESLint
@@ -56,6 +58,8 @@ Não há suíte de testes automatizada.
 pnpm dev                             # em um terminal
 node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 ```
+
+**Passo de screenshot na validação:** ao validar qualquer mudança visual, tire screenshots com Playwright e salve-os na pasta `screenshots-dev/` (não commitados — ver `.gitignore`). Convenção de nome: `{número de 3 dígitos}-{o que está sendo mostrado}.png` (ex.: `001-tela-inicial.png`, `002-hud-dinheiro.png`), para não colidir entre execuções. **Não apague** os screenshots depois — deixe-os na pasta para referência histórica da sessão.
 
 **`script-testing/`** guarda os scripts de teste/verificação manual "interessantes" do projeto — os que valem ser mantidos por histórico (como o `verify-juca.mjs`). Ao criar um script útil durante a fase de teste, guarde-o aqui em vez de deixá-lo na raiz.
 
@@ -72,7 +76,7 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 - `components/StoryEngine.tsx` — **motor da história** (client component, **agnóstico de conteúdo**). Recebe `story: Story` por prop; dono de todo o estado (nó atual, cross-fade), faz a gestão de foco e compõe os demais componentes. O rótulo de acessibilidade de cada cena vem de `node.label` (não há mais `SCENE_LABELS`).
 - `components/SceneView.tsx` — renderiza o texto da cena e o `<h2 tabIndex={-1}>` que recebe o foco.
 - `components/ChoiceButton.tsx` — um `<button>` por escolha.
-- `components/NarrationButton.tsx` — narração por voz via Web Speech API (`speechSynthesis`), em pt-BR.
+- `components/NarrationButton.tsx` — narração por voz via Web Speech API (`speechSynthesis`), em pt-BR, com botão de velocidade (0,75×–2×) ao lado; o `rate` (multiplicador) mora no `StoryEngine`, não neste componente, para persistir entre trocas de cena.
 - `components/ShareButton.tsx` — botão de **compartilhar** (client component); usa a Web Share API (`navigator.share`) com fallback de copiar link. O link aponta sempre para o início da história (`/historias/<slug>`), não para o nó atual. Aparece em todas as cenas.
 - `components/Hud.tsx` — HUD persistente de estado leve (dinheiro, tempo, etc.); só renderiza se `story.content.hud` existir. Região `aria-live="polite"` própria, separada da cena (ver seção 8). Genérico: itera `hud` e formata cada valor via `lib/engine.ts#formatHudValue`, sem conhecer nomes de variável.
 - `lib/types.ts` — tipos `Story`, `StoryData`, `StoryNode`, `Choice`, e os tipos de estado leve `Effect`, `Condition`, `HudItem`, `StoryVariables` (ver seção 6).
@@ -192,7 +196,7 @@ Uma história pode opcionalmente ter **estado leve** — variáveis numéricas (
 - **NÃO** usar `aria-live` **e** movimentação de foco ao mesmo tempo para o mesmo conteúdo — combinar os dois causa leitura duplicada. Aqui usamos gestão de foco; não adicione `aria-live` na mesma região.
 - **Nenhuma informação só por cor**; alto contraste; fonte ampliável; sem armadilhas de teclado; foco sempre visível (`:focus-visible`).
 - Há **skip link** ("Pular para o conteúdo") e imagens decorativas com `alt=""` / `aria-hidden`.
-- **Narração:** `NarrationButton` fala o texto da cena e depois as escolhas, via `SpeechSynthesisUtterance` encadeados em `pt-BR`; a narração é cancelada ao trocar de cena. O botão só aparece se o navegador suportar `speechSynthesis`.
+- **Narração:** `NarrationButton` fala o texto da cena e depois as escolhas, via `SpeechSynthesisUtterance` encadeados em `pt-BR`; a narração é cancelada ao trocar de cena. O botão só aparece se o navegador suportar `speechSynthesis`. Ao lado, um botão de velocidade cicla entre 0,75×/1×/1,25×/1,5×/2× (rótulo textual, não só cor); mudar a velocidade durante uma fala reinicia a narração da cena atual na nova velocidade (a Web Speech API não permite alterar o `rate` de uma fala em andamento). Uma região local `role="status"` (`sr-only`, junto do botão — não a região da cena) anuncia a mudança de velocidade.
 - **Compartilhar:** `ShareButton` é um `<button>` real com `aria-label` claro; a confirmação "Link copiado!" fica num `role="status"` **local ao botão** (não na região da cena) — isso não conflita com a regra de não combinar `aria-live` + foco no **conteúdo da cena**.
 - **HUD (estado leve):** `components/Hud.tsx` usa `aria-live="polite"` — é uma região **separada** da cena (a cena usa gestão de foco, nunca `aria-live`). Ao mudar de nó, o HUD pode anunciar a variável alterada enquanto o foco vai para o heading da cena nova, sem duplicar leitura porque são regiões diferentes.
 - **Textos escritos para soar bem em narração:** sem CAIXA ALTA solta, sem emojis decorativos no conteúdo lido.

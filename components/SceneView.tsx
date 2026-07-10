@@ -6,7 +6,11 @@ interface SceneViewProps {
   sceneLabel: string;
 }
 
-export default function SceneView({ text, headingRef, sceneLabel }: SceneViewProps) {
+export default function SceneView({
+  text,
+  headingRef,
+  sceneLabel,
+}: SceneViewProps) {
   const paragraphs = text.split("\n\n").filter(Boolean);
 
   return (
@@ -14,7 +18,8 @@ export default function SceneView({ text, headingRef, sceneLabel }: SceneViewPro
       <h2
         ref={headingRef}
         tabIndex={-1}
-        className="sr-only focus:not-sr-only focus:outline-none"
+        className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-300/70 focus:outline-none p-2"
+        style={{ fontFamily: "var(--font-ui)" }}
       >
         {sceneLabel}
       </h2>

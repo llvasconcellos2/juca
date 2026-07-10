@@ -77,17 +77,20 @@ export default function StoryEngine({ story }: StoryEngineProps) {
 
       {/* Header with story illustration */}
       <header className="w-full max-w-2xl mb-8 flex flex-col items-center gap-4">
-        <Link
-          href="/"
-          className="
-            self-start text-sm text-emerald-300/80 hover:text-emerald-300
-            focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400
-            focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1628] rounded
-            transition-colors
-          "
-        >
-          <span aria-hidden="true">←</span> Todas as histórias
-        </Link>
+        <div className="w-full flex items-center justify-between gap-2">
+          <Link
+            href="/"
+            className="
+              text-sm text-emerald-300/80 hover:text-emerald-300
+              focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400
+              focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1628] rounded
+              transition-colors
+            "
+          >
+            <span aria-hidden="true">←</span> Todas as histórias
+          </Link>
+          <ShareButton url={storyUrl} title={s.title} text={s.subtitle} />
+        </div>
         <div className="relative w-40 h-52 drop-shadow-2xl" aria-hidden="true">
           <Image
             src={story.cover}
@@ -122,7 +125,6 @@ export default function StoryEngine({ story }: StoryEngineProps) {
           {/* Scene card */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl backdrop-blur-sm mb-6">
             <div className="flex flex-wrap justify-end gap-2 mb-4">
-              <ShareButton url={storyUrl} title={s.title} text={s.subtitle} />
               <NarrationButton
                 key={currentId}
                 text={node.text}

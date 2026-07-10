@@ -142,7 +142,7 @@ export default function NarrationButton({
       ? "Pausar narração"
       : status === "paused"
         ? "Continuar narração"
-        : "Ouvir";
+        : "Ouvir cena";
   const playAriaLabel =
     status === "playing"
       ? "Pausar narração"

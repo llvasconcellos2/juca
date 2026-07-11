@@ -1,15 +1,22 @@
 import { RefObject } from "react";
+import SceneImage from "./SceneImage";
 
 interface SceneViewProps {
   text: string;
   headingRef: RefObject<HTMLHeadingElement | null>;
   sceneLabel: string;
+  /** Caminho público da imagem da cena. Opcional — sem ela, renderiza só texto. */
+  image?: string;
+  /** Alt da imagem. A imagem só é exibida se ambos `image` e `imageAlt` estiverem presentes. */
+  imageAlt?: string;
 }
 
 export default function SceneView({
   text,
   headingRef,
   sceneLabel,
+  image,
+  imageAlt,
 }: SceneViewProps) {
   const paragraphs = text.split("\n\n").filter(Boolean);
 
@@ -32,6 +39,9 @@ export default function SceneView({
           {para}
         </p>
       ))}
+      {/* A imagem vem DEPOIS do texto na ordem de leitura: o texto narrado é o principal,
+          a imagem complementa (ver CLAUDE.md, seção 8). */}
+      {image && imageAlt && <SceneImage key={image} src={image} alt={imageAlt} />}
     </article>
   );
 }

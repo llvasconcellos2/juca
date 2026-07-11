@@ -43,6 +43,16 @@ export default function StoryEngine({ story }: StoryEngineProps) {
     ? "Fim da história! Para jogar novamente, pressione o botão Jogar novamente."
     : `${s.choicesPrompt} ${visibleChoices.map((c, i) => `Opção ${i + 1}: ${c.label}`).join(". ")}.`;
 
+  // Pré-carrega a imagem dos próximos nós possíveis para evitar "flash" ao navegar.
+  // React 19 hoisteia <link> renderizado em qualquer ponto da árvore para o <head>.
+  const nextImages = Array.from(
+    new Set(
+      visibleChoices
+        .map((choice) => s.nodes[choice.target]?.image)
+        .filter((src): src is string => Boolean(src))
+    )
+  );
+
   useEffect(() => {
     headingRef.current?.focus();
   }, [currentId]);
@@ -137,8 +147,13 @@ export default function StoryEngine({ story }: StoryEngineProps) {
               text={node.text}
               headingRef={headingRef}
               sceneLabel={sceneLabel}
+              image={node.image}
+              imageAlt={node.imageAlt}
             />
           </div>
+          {nextImages.map((src) => (
+            <link key={src} rel="preload" as="image" href={src} />
+          ))}
 
           {/* Choices or restart */}
           {node.isEnding ? (

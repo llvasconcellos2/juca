@@ -47,6 +47,16 @@ export interface StoryNode {
   choices: Choice[];
   /** Efeitos aplicados (na ordem) ao entrar neste nó. */
   onEnter?: Effect[];
+  /** Caminho público da imagem da cena (ex.: "/images/<slug>/<no>.png"). Opcional. */
+  image?: string;
+  /** Texto alternativo da imagem. OBRIGATÓRIO sempre que `image` estiver definido. */
+  imageAlt?: string;
+  /**
+   * Metadado de autoria: o prompt usado para gerar a imagem. Nunca é renderizado e é
+   * removido do conteúdo antes de chegar ao cliente (ver `stripAuthoringMetadata` em
+   * `lib/engine.ts`).
+   */
+  imagePrompt?: string;
 }
 
 export interface StoryData {

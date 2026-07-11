@@ -2,23 +2,28 @@
 // - `start` existe; todo `target` de escolha existe;
 // - todo nó não-final tem ao menos uma escolha; nós finais não têm escolhas;
 // - nenhum nó fica inalcançável a partir de `start`;
-// - nenhum nó com escolhas fica travado por condição (todas as choices com `condition`).
+// - nenhum nó com escolhas fica travado por condição (todas as choices com `condition`);
+// - todo nó com `image` tem `imageAlt` não-vazio (erro);
+// - (aviso) `imageAlt` não deve ser idêntico ao texto do nó (indício de duplicar a narração);
+// - (aviso) todo arquivo referenciado em `image` existe em /public.
 //
 // Uso: node script-testing/validate-stories.mjs
 
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const storiesDir = path.join(__dirname, "..", "stories");
+const publicDir = path.join(__dirname, "..", "public");
 
 function validateStory(slug, data) {
   const errors = [];
+  const warnings = [];
   const { start, nodes } = data;
 
   if (!nodes || typeof nodes !== "object") {
-    return [`nodes ausente ou inválido`];
+    return { errors: [`nodes ausente ou inválido`], warnings };
   }
   if (!start || !nodes[start]) {
     errors.push(`start "${start}" não existe em nodes`);
@@ -42,6 +47,18 @@ function validateStory(slug, data) {
     if (!node.isEnding && choices.length > 0 && choices.every((c) => c.condition)) {
       errors.push(`nó "${id}": todas as escolhas têm condition — o jogador pode ficar sem opção disponível`);
     }
+
+    if (node.image) {
+      if (!node.imageAlt || !node.imageAlt.trim()) {
+        errors.push(`nó "${id}": tem "image" mas não tem "imageAlt" (obrigatório para leitor de tela)`);
+      } else if (node.imageAlt.trim().toLowerCase() === (node.text ?? "").trim().toLowerCase()) {
+        warnings.push(`nó "${id}": "imageAlt" é idêntico ao texto da cena — pode duplicar a narração`);
+      }
+
+      if (!existsSync(path.join(publicDir, node.image))) {
+        warnings.push(`nó "${id}": "image" "${node.image}" não encontrado em /public`);
+      }
+    }
   }
 
   if (start && nodes[start]) {
@@ -61,7 +78,7 @@ function validateStory(slug, data) {
     }
   }
 
-  return errors;
+  return { errors, warnings };
 }
 
 const slugs = readdirSync(storiesDir, { withFileTypes: true })
@@ -70,6 +87,7 @@ const slugs = readdirSync(storiesDir, { withFileTypes: true })
   .sort();
 
 let totalErrors = 0;
+let totalWarnings = 0;
 
 for (const slug of slugs) {
   const contentPath = path.join(storiesDir, slug, "content.json");
@@ -82,7 +100,7 @@ for (const slug of slugs) {
     continue;
   }
 
-  const errors = validateStory(slug, data);
+  const { errors, warnings } = validateStory(slug, data);
   if (errors.length === 0) {
     const nodeCount = Object.keys(data.nodes ?? {}).length;
     console.log(`[${slug}] OK — ${nodeCount} nós, grafo válido.`);
@@ -91,6 +109,12 @@ for (const slug of slugs) {
     console.error(`[${slug}] ${errors.length} problema(s):`);
     for (const error of errors) console.error(`  - ${error}`);
   }
+
+  if (warnings.length > 0) {
+    totalWarnings += warnings.length;
+    console.warn(`[${slug}] ${warnings.length} aviso(s):`);
+    for (const warning of warnings) console.warn(`  - ${warning}`);
+  }
 }
 
 if (totalErrors > 0) {
@@ -98,4 +122,7 @@ if (totalErrors > 0) {
   process.exit(1);
 } else {
   console.log(`\nTodas as ${slugs.length} histórias passaram na validação.`);
+  if (totalWarnings > 0) {
+    console.warn(`(${totalWarnings} aviso(s) — não bloqueiam, mas vale revisar.)`);
+  }
 }

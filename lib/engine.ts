@@ -1,4 +1,4 @@
-import type { Condition, Effect, HudFormat, StoryVariables } from "./types";
+import type { Condition, Effect, HudFormat, StoryData, StoryVariables } from "./types";
 
 /** Aplica um único efeito e retorna um novo objeto de estado (não muta `vars`). */
 export function applyEffect(vars: StoryVariables, effect: Effect): StoryVariables {
@@ -59,4 +59,23 @@ export function formatHudValue(value: number, format: HudFormat = "number"): str
     default:
       return String(clamped);
   }
+}
+
+/**
+ * Remove metadados de autoria (`imagePrompt`) de todos os nós antes do conteúdo cruzar a
+ * fronteira servidor -> cliente. `imagePrompt` é só anotação de como a imagem foi gerada;
+ * não deve ser renderizado nem enviado ao navegador.
+ */
+export function stripAuthoringMetadata(content: StoryData): StoryData {
+  return {
+    ...content,
+    nodes: Object.fromEntries(
+      Object.entries(content.nodes).map(([id, node]) => {
+        if (!node.imagePrompt) return [id, node];
+        const rest = { ...node };
+        delete rest.imagePrompt;
+        return [id, rest];
+      })
+    ),
+  };
 }

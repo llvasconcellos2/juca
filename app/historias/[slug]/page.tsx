@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import StoryEngine from "@/components/StoryEngine";
 import { getStory, stories } from "@/lib/stories";
+import { stripAuthoringMetadata } from "@/lib/engine";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -43,5 +44,7 @@ export default async function StoryPage({ params }: Params) {
   const story = getStory(slug);
   if (!story) notFound();
 
-  return <StoryEngine story={story} />;
+  // `imagePrompt` é metadado de autoria (prompt usado para gerar a imagem da cena) — nunca
+  // deve chegar ao cliente. Removido aqui, na fronteira servidor -> cliente.
+  return <StoryEngine story={{ ...story, content: stripAuthoringMetadata(story.content) }} />;
 }

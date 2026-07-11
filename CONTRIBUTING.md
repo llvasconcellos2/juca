@@ -50,6 +50,7 @@ Este é o coração do projeto. **Nenhuma contribuição que afete a UI é aceit
 - **Escolhas são `<button>` reais** (nunca `div`), navegáveis por **Tab** e acionáveis por **Enter/Espaço**, com rótulo claro e único.
 - **Ao trocar de cena, o foco vai para o início do texto novo** — um heading com `tabindex="-1"` que recebe `.focus()` (ver `headingRef` em `StoryEngine.tsx` / `SceneView.tsx`).
 - **Não usar `aria-live` e movimentação de foco ao mesmo tempo** para o mesmo conteúdo (causa leitura duplicada). O projeto usa gestão de foco; não adicione `aria-live` na mesma região. O HUD de estado leve (dinheiro, tempo etc.) é a exceção deliberada: fica numa região **separada** com `aria-live="polite"` — nunca junte HUD e cena na mesma região.
+- **Imagem de cena nunca recebe o foco.** Se um nó tem `image`, o foco na troca de cena continua indo só para o heading do texto — a imagem não é focável e vem depois do texto na ordem de leitura. `imageAlt` é obrigatório quando há `image` e não pode duplicar o texto narrado.
 - **Nenhuma informação transmitida só por cor**; alto contraste; fonte ampliável; sem armadilhas de teclado; foco sempre visível (`:focus-visible`).
 - **Textos escritos para soar bem em narração**: sem CAIXA ALTA solta, sem emojis decorativos no conteúdo lido.
 - **Teste manual mínimo antes do PR:** navegue **100% por teclado** e valide com pelo menos **um leitor de tela** (NVDA, JAWS, VoiceOver ou Narrator).
@@ -85,6 +86,8 @@ O conteúdo é **totalmente separado da engine**: cada história é autocontida 
 3. Todo `target` deve apontar para um `id` existente; nó final tem `isEnding: true` e `choices: []`.
 
 **Adicionar uma HISTÓRIA nova:** crie `stories/<slug>/` com `content.json`, `cover.png` e `index.ts` (que monta o `Story`), e registre-a em `lib/stories.ts`. A rota `/historias/<slug>` e o card na tela de seleção passam a funcionar automaticamente. Ver o passo a passo no [CLAUDE.md](CLAUDE.md).
+
+**Imagem de cena (opcional):** um nó pode ter `image` (caminho público em `public/images/<slug>/`, ex.: `/images/juca-churrasco/inicio.png`) e `imageAlt` (texto alternativo). **`imageAlt` é obrigatório sempre que houver `image`** — `pnpm validate-stories` bloqueia se faltar — e não deve repetir o `text` da cena (o leitor de tela ouviria a narração duas vezes). Há também `imagePrompt`, que é **só metadado de autoria** (o prompt usado para gerar a imagem): nunca é renderizado e é removido antes de chegar ao cliente. Sem `image`, o nó renderiza só texto, como sempre. Detalhes completos no [CLAUDE.md](CLAUDE.md#6-formato-de-conteúdo-das-histórias).
 
 **Estado leve (opcional):** uma história pode ter variáveis numéricas (ex.: `dinheiro`, `tempo`) que efeitos alteram (`onEnter` de nó, `effects` de escolha) e que condições usam para esconder escolhas (`condition`). Totalmente opcional e retrocompatível — sem esses campos, a história funciona como sempre funcionou. A engine **nunca** hardcoda nomes de variável; tudo vem do `content.json`. Detalhes completos (formato de efeito/condição, HUD com `format` de exibição, regra de "sempre uma escolha sem custo") estão no [CLAUDE.md](CLAUDE.md#6-formato-de-conteúdo-das-histórias).
 
@@ -122,7 +125,8 @@ Cole na descrição do seu PR:
 - [ ] `pnpm validate-stories` passa (se mexeu em algum `content.json`)
 - [ ] Verificação manual (`node script-testing/verify-juca.mjs`) executada, quando aplicável
 - [ ] Escolhas são <button> reais, navegáveis por Tab e Enter/Espaço, com rótulo claro
-- [ ] Ao trocar de cena o foco vai para o texto novo (heading tabindex="-1" + .focus())
+- [ ] Ao trocar de cena o foco vai para o texto novo (heading tabindex="-1" + .focus()), nunca para a imagem
+- [ ] Se o nó tem `image`, `imageAlt` está preenchido e não repete o texto da cena
 - [ ] Nenhuma informação só por cor; alto contraste; sem armadilhas de teclado
 - [ ] Textos adequados à narração (sem CAIXA ALTA solta nem emojis decorativos)
 - [ ] Testei com leitor de tela e só por teclado (descrevi qual leitor/navegador abaixo)

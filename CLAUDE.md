@@ -63,7 +63,7 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 
 **`script-testing/`** guarda os scripts de teste/verificação manual "interessantes" do projeto — os que valem ser mantidos por histórico (como o `verify-juca.mjs`). Ao criar um script útil durante a fase de teste, guarde-o aqui em vez de deixá-lo na raiz.
 
-**Validação de grafo (`script-testing/validate-stories.mjs`):** lê `stories/<slug>/content.json` de toda história registrada e confere, sem precisar de browser: `start` existe; todo `target` de escolha existe; todo nó não-final tem ao menos uma escolha e nós finais não têm nenhuma; nenhum nó fica inalcançável a partir de `start`; nenhum nó fica "travado por condição" (todas as `choices` do nó têm `condition` — nesse caso o jogador pode ficar sem opção). Rode com `pnpm validate-stories` (não precisa de dev server rodando).
+**Validação de grafo (`script-testing/validate-stories.mjs`):** lê `stories/<slug>/content.json` de toda história registrada e confere, sem precisar de browser: `start` existe; todo `target` de escolha existe; todo nó não-final tem ao menos uma escolha e nós finais não têm nenhuma; nenhum nó fica inalcançável a partir de `start`; nenhum nó fica "travado por condição" (todas as `choices` do nó têm `condition` — nesse caso o jogador pode ficar sem opção); todo nó com `image` tem `imageAlt` não-vazio (erro, bloqueia). Também emite **avisos** (não bloqueiam): `imageAlt` idêntico ao `text` do nó (indício de duplicar a narração) e arquivo de `image` que não existe em `/public`. Rode com `pnpm validate-stories` (não precisa de dev server rodando).
 
 ## 5. Estrutura do projeto
 
@@ -74,13 +74,14 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 - `app/historias/[slug]/page.tsx` — **rota da história** (server component async). Resolve `slug` (`await params`, padrão Next 16), busca via `getStory`, faz `notFound()` se não existir e renderiza `<StoryEngine story={...} />`. Tem `generateStaticParams` (SSG por slug) e `generateMetadata` (OG/Twitter por história).
 - `app/globals.css` — Tailwind v4 (`@import "tailwindcss"` + bloco `@theme inline`); fundo "rio à noite", estrelas decorativas (`aria-hidden`), `.skip-link` e estilos globais de `:focus-visible`.
 - `components/StoryEngine.tsx` — **motor da história** (client component, **agnóstico de conteúdo**). Recebe `story: Story` por prop; dono de todo o estado (nó atual, cross-fade), faz a gestão de foco e compõe os demais componentes. O rótulo de acessibilidade de cada cena vem de `node.label` (não há mais `SCENE_LABELS`).
-- `components/SceneView.tsx` — renderiza o texto da cena e o `<h2 tabIndex={-1}>` que recebe o foco.
+- `components/SceneView.tsx` — renderiza o texto da cena, o `<h2 tabIndex={-1}>` que recebe o foco e, opcionalmente, a imagem da cena (via `components/SceneImage.tsx`) **depois** do texto, na ordem de leitura.
+- `components/SceneImage.tsx` — imagem opcional de uma cena (client component). Usa `next/image` com `fill` dentro de um contêiner com `aspect-[16/9]` fixo (evita layout shift enquanto carrega) e `object-contain` (não corta a imagem, funciona tanto para ilustração quanto para foto composta). Se o arquivo falhar ao carregar (`onError`), o componente esconde a si mesmo (`return null`) — a cena continua funcionando só com texto.
 - `components/ChoiceButton.tsx` — um `<button>` por escolha.
 - `components/NarrationButton.tsx` — narração por voz via Web Speech API (`speechSynthesis`), em pt-BR, com controles Reiniciar / Ouvir-Pausar / velocidade (0,75×–3×) lado a lado; o `rate` (multiplicador) mora no `StoryEngine`, não neste componente, para persistir entre trocas de cena. Play alterna para Pausar/Continuar via `speechSynthesis.pause()/resume()` (não cancela mais). Trocar a velocidade no meio da fala não reinicia do zero: a última posição ouvida (via `onboundary`) é usada para recomeçar dali, na nova velocidade — cai de volta ao início do segmento em navegadores sem `onboundary` (ex.: Safari).
 - `components/ShareButton.tsx` — botão de **compartilhar** (client component); usa a Web Share API (`navigator.share`) com fallback de copiar link. O link aponta sempre para o início da história (`/historias/<slug>`), não para o nó atual. Aparece em todas as cenas.
 - `components/Hud.tsx` — HUD persistente de estado leve (dinheiro, tempo, etc.); só renderiza se `story.content.hud` existir. Região `aria-live="polite"` própria, separada da cena (ver seção 8). Genérico: itera `hud` e formata cada valor via `lib/engine.ts#formatHudValue`, sem conhecer nomes de variável.
 - `lib/types.ts` — tipos `Story`, `StoryData`, `StoryNode`, `Choice`, e os tipos de estado leve `Effect`, `Condition`, `HudItem`, `StoryVariables` (ver seção 6).
-- `lib/engine.ts` — funções puras e agnósticas de conteúdo para o estado leve: `applyEffect`/`applyEffects` (aplica efeitos a um objeto de variáveis), `evaluateCondition` (avalia uma condição), `formatHudValue` (formata um valor para o HUD conforme `HudFormat`). Sem nenhum nome de variável hardcoded.
+- `lib/engine.ts` — funções puras e agnósticas de conteúdo para o estado leve: `applyEffect`/`applyEffects` (aplica efeitos a um objeto de variáveis), `evaluateCondition` (avalia uma condição), `formatHudValue` (formata um valor para o HUD conforme `HudFormat`), `stripAuthoringMetadata` (remove `imagePrompt` de todos os nós antes do conteúdo cruzar para o cliente). Sem nenhum nome de variável hardcoded.
 - `lib/stories.ts` — **registro** das histórias (`stories`, `getStory(slug)`).
 - `stories/<slug>/` — cada história é **autocontida**:
   - `content.json` — o grafo de nós + metadados (`title`, `subtitle`, `choicesPrompt`, `shareImage`, `label` por nó, e opcionalmente `variables`/`hud`/`onEnter`/`condition`/`effects` — ver seção 6).
@@ -88,6 +89,7 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
   - `cover.png` — capa (import otimizado pelo `next/image`, exibição in-app).
   - `roteiro.md` — roteiro-fonte da história + notas de acessibilidade (arquivado junto do conteúdo).
 - `public/juca.png` — imagem de compartilhamento/OG (URL pública absoluta que os crawlers buscam; **não** é o mesmo que a `cover.png` importada).
+- `public/images/<slug>/` — convenção para imagens de CENA (campo `image` de um nó, ver seção 6). Caminho público, ex.: `/images/juca-churrasco/inicio.png`. Diferente de `cover.png` (capa da história, importada) e de `juca.png` (imagem de compartilhamento/OG).
 - `assets/` — arquivos guardados de imagens, logos, icones, etc. Serve mais como **referência histórica** e consulta, fora do build (não é `public/` nem `stories/`).
 - `script-testing/` — scripts de teste/verificação manual guardados para histórico (ver seção 4).
 - Configs: `next.config.ts`, `tsconfig.json` (alias `@/*` → raiz), `eslint.config.mjs`, `postcss.config.mjs`.
@@ -110,6 +112,9 @@ O conteúdo é **totalmente separado do código**. Cada história vive em `stori
       "label": "Início da aventura", // rótulo de acessibilidade da cena (heading que recebe foco)
       "text": "Parágrafos...\n\nSeparados por linha em branco.",
       "isEnding": false,
+      "image": "/images/<slug>/inicio.png", // opcional: imagem da cena (caminho público em /public)
+      "imageAlt": "Descrição curta da imagem, sem repetir o texto narrado", // OBRIGATÓRIO se "image" existir
+      "imagePrompt": "prompt usado para gerar a imagem", // opcional: só metadado de autoria, nunca renderizado
       "choices": [{ "label": "Texto do botão", "target": "id_do_proximo_no" }],
     },
     "um_final": {
@@ -128,12 +133,20 @@ Regras do formato:
 - `label` é o rótulo lido pelo leitor de tela ao entrar na cena (heading com foco). Recomendado em todo nó; se faltar, o motor usa "Cena".
 - Nó final: `isEnding: true` e `choices: []` (o motor mostra "Jogar novamente").
 - Todo `target` de escolha deve apontar para um `id` existente em `nodes`.
+- **Imagem de cena (`image`/`imageAlt`/`imagePrompt`), opcional e retrocompatível** — um nó sem `image` renderiza só texto, exatamente como antes:
+  - `image`: caminho público do arquivo já gerado/aprovado (ex.: `/images/juca-churrasco/inicio.png`), servido de `public/images/<slug>/`.
+  - `imageAlt`: texto alternativo curto, para leitor de tela. **Obrigatório sempre que `image` estiver presente** (`pnpm validate-stories` falha se faltar). Não deve duplicar o texto narrado — a pessoa ouviria a mesma coisa duas vezes (o validador avisa, não bloqueia, se `imageAlt` for idêntico ao `text`). Alt vazio só seria aceitável para imagem puramente decorativa, o que não é o caso aqui.
+  - `imagePrompt`: **apenas metadado de autoria** (o prompt usado para gerar a imagem). Nunca é renderizado. É removido do conteúdo antes de cruzar a fronteira servidor → cliente por `lib/engine.ts#stripAuthoringMetadata`, chamada em `app/historias/[slug]/page.tsx` — não vai no HTML nem no payload React enviado ao navegador.
+  - Renderização (`components/SceneImage.tsx`) usa `next/image` — o projeto **não** usa `output: export` (ver `next.config.ts`), então a otimização de imagem padrão do Next funciona normalmente, sem precisar de `images.unoptimized` nem loader customizado.
+  - A imagem aparece **depois** do texto na ordem de leitura (o texto narrado é o principal; a imagem complementa) e nunca entra na ordem de tabulação (é `<img>`, não focável — o foco na troca de cena continua indo só para o heading, nunca para a imagem).
+  - Se o arquivo referenciado não existir/falhar ao carregar, a cena degrada com elegância: a imagem some (sem ícone de imagem quebrada) e o texto continua funcionando normalmente.
 
 **Como adicionar uma nova CENA** a uma história existente:
 
 1. Em `stories/<slug>/content.json`, adicione uma entrada em `nodes` com um `id` novo — `label`, `text`, `isEnding` e `choices`.
 2. Aponte para ela a partir do `target` de alguma escolha (e/ou dê a ela escolhas que apontem adiante).
 3. O `label` do próprio nó já é o rótulo de acessibilidade — **não** há mais uma tabela separada (`SCENE_LABELS`) para sincronizar.
+4. Se a cena tiver imagem: salve o arquivo em `public/images/<slug>/`, referencie em `image` e escreva um `imageAlt` que não repita o `text`. Rode `pnpm validate-stories` para confirmar.
 
 **Como adicionar uma nova HISTÓRIA:**
 
@@ -199,6 +212,7 @@ Uma história pode opcionalmente ter **estado leve** — variáveis numéricas (
 - **Narração:** `NarrationButton` fala o texto da cena e depois as escolhas, via `SpeechSynthesisUtterance` encadeados em `pt-BR`; a narração é cancelada ao trocar de cena. Os controles só aparecem se o navegador suportar `speechSynthesis`. Três botões lado a lado: **Reiniciar** ⏮ (desabilitado quando não há narração ativa; reinicia a cena do zero), **Ouvir cena** (alterna Pausar ⏸/Continuar ▶ via `speechSynthesis.pause()/resume()`, sem cancelar a fala), e a **velocidade**, que cicla entre 0,75×/1×/1,5×/2×/3× (rótulo textual, não só cor). Mudar a velocidade durante uma fala **continua da última palavra ouvida** (rastreada via `onboundary`), não reinicia do começo — a Web Speech API não permite alterar o `rate` de uma fala em andamento, então o motor cancela e recomeça um novo `SpeechSynthesisUtterance` a partir dali. Uma região local `role="status"` (`sr-only`, junto do botão — não a região da cena) anuncia a mudança de velocidade. **Cuidado com cache do Turbopack:** classes Tailwind arbitrárias novas (ex.: `min-w-[5rem]`) às vezes não aparecem no CSS de um dev server já rodando há muito tempo; se um estilo novo não surtir efeito visualmente, apague `.next/` e reinicie `pnpm dev` antes de investigar o componente.
 - **Compartilhar:** `ShareButton` é um `<button>` real com `aria-label` claro; a confirmação "Link copiado!" fica num `role="status"` **local ao botão** (não na região da cena) — isso não conflita com a regra de não combinar `aria-live` + foco no **conteúdo da cena**.
 - **HUD (estado leve):** `components/Hud.tsx` usa `aria-live="polite"` — é uma região **separada** da cena (a cena usa gestão de foco, nunca `aria-live`). Ao mudar de nó, o HUD pode anunciar a variável alterada enquanto o foco vai para o heading da cena nova, sem duplicar leitura porque são regiões diferentes.
+- **Imagem de cena (opcional):** ao trocar de nó, o foco continua indo **só** para o heading do texto (`headingRef`) — **nunca** para a imagem. A imagem (`<img>`, via `next/image` em `components/SceneImage.tsx`) não é focável e não recebe `tabIndex`. Ela vem **depois** do texto na ordem de leitura/DOM. `imageAlt` é obrigatório sempre que houver `image` e não deve duplicar o texto narrado (ver seção 6 e o validador). O contêiner reserva `aspect-[16/9]` fixo para não causar layout shift, e a imagem nunca cobre texto nem botões de escolha.
 - **Textos escritos para soar bem em narração:** sem CAIXA ALTA solta, sem emojis decorativos no conteúdo lido.
 
 ## 9. Escopo e roadmap

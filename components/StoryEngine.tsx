@@ -43,9 +43,15 @@ export default function StoryEngine({ story }: StoryEngineProps) {
     (choice) => !choice.condition || evaluateCondition(vars, choice.condition),
   );
 
+  // Com uma única escolha (ex.: "Continuar"), não há decisão real — a pergunta
+  // ("O que Juca faz?") é omitida tanto na interface quanto na narração.
+  const hasSingleChoice = visibleChoices.length === 1;
+
   const choicesText = node.isEnding
     ? "Fim da história! Para jogar novamente, pressione o botão Jogar novamente."
-    : `${s.choicesPrompt} ${visibleChoices.map((c, i) => `Opção ${i + 1}: ${c.label}`).join(". ")}.`;
+    : hasSingleChoice
+      ? `${visibleChoices[0].label}.`
+      : `${s.choicesPrompt} ${visibleChoices.map((c, i) => `Opção ${i + 1}: ${c.label}`).join(". ")}.`;
 
   // Narração da cena: label (rótulo de acessibilidade), depois o alt da imagem (se houver),
   // depois o texto — na mesma ordem de leitura visual do SceneView (label > imagem > texto).
@@ -194,9 +200,11 @@ export default function StoryEngine({ story }: StoryEngineProps) {
             </div>
           ) : (
             <nav aria-label="Escolhas da história">
-              <p className="text-white/60 text-sm mb-3 font-medium uppercase tracking-wide">
-                {s.choicesPrompt}
-              </p>
+              {!hasSingleChoice && (
+                <p className="text-white/60 text-sm mb-3 font-medium uppercase tracking-wide">
+                  {s.choicesPrompt}
+                </p>
+              )}
               <ul className="space-y-3 list-none p-0">
                 {visibleChoices.map((choice, i) => (
                   <li key={i}>

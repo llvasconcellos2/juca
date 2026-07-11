@@ -243,7 +243,7 @@
     },
     "on_aviso_passageiro": {
       "label": "Aviso de uma passageira",
-      "text": "— Pode deixar que eu te aviso a hora de descer! — disse uma senhora animada, que já foi puxando papo. Falou do neto, do tempo, e de um tal licor aromatic da Bartenike que ia rolar num evento.\n\n— Aromatic? É o do churrasco que eu tô indo! — riu o Juca. — Dizem que é parecido com aquele Jägermeister, só que da região, de Garuva. Que Jägermeister que nada, o aromatic é muito mais saboroso!\n\nE, no ponto certo: — É agora, meu querido! — E era mesmo.",
+      "text": "— Pode deixar que eu te aviso a hora de descer! — disse uma senhora animada, que já foi puxando papo. Falou do neto, do tempo, e de um tal licor Aromatic da Bartenike que ia rolar num evento.\n\n— Aromatic? É o do churrasco que eu tô indo! — riu o Juca. — Dizem que é parecido com aquele Jägermeister, só que da região, de Garuva. Que Jägermeister que nada, o Aromatic é muito mais saboroso!\n\nE, no ponto certo: — É agora, meu querido! — E era mesmo.",
       "imageType": "ilustracao",
       "imagePrompt": "Juca sentado ao lado de uma senhora falante e simpática no ônibus, os dois rindo da conversa.",
       "image": "/images/juca-churrasco/on_aviso_passageiro.png",
@@ -284,7 +284,7 @@
     },
     "final_chegou": {
       "label": "Final: chegou ao churrasco!",
-      "text": "Guiado pelo faro (e por um moço super gente boa), o Juca empurrou a porta do Don Toro. Uma salva de palmas!\n\n— Chegou o Juca! — gritou o pessoal do IVIS.\n\nLá dentro, a festa: carne do Frigorífico São João na brasa do Pega Fogo, pão de alho da Santa Massa saindo quentinho, suco Life gelado pra todo mundo — e, pros adultos, uma garrafa do tal aromatic pra degustar.\n\n— Cheguei! Suado, mas cheguei. E olha, até sobrou troco — riu o Juca, chacoalhando o bolso.\n\nO Frank veio receber:\n\n— É isso, Juca. O importante é a gente estar junto, na rua, no mundo, vivendo. Hoje você chegou até aqui sozinho. Semana que vem, você tá pilotando a churrasqueira!\n\nO Juca abriu o maior sorrisão de dentes.\n\n— Então bora aprender, que esse jacaré vai virar mestre churrasqueiro. Cadê meu avental?\n\nFim.",
+      "text": "Guiado pelo faro (e por um moço super gente boa), o Juca empurrou a porta do Don Toro. Uma salva de palmas!\n\n— Chegou o Juca! — gritou o pessoal do IVIS.\n\nLá dentro, a festa: carne do Frigorífico São João na brasa do Pega Fogo, pão de alho da Santa Massa saindo quentinho, suco Life gelado pra todo mundo — e, pros adultos, uma garrafa do tal Aromatic pra degustar.\n\n— Cheguei! Suado, mas cheguei. E olha, até sobrou troco — riu o Juca, chacoalhando o bolso.\n\nO Frank veio receber:\n\n— É isso, Juca. O importante é a gente estar junto, na rua, no mundo, vivendo. Hoje você chegou até aqui sozinho. Semana que vem, você tá pilotando a churrasqueira!\n\nO Juca abriu o maior sorrisão de dentes.\n\n— Então bora aprender, que esse jacaré vai virar mestre churrasqueiro. Cadê meu avental?\n\nFim.",
       "imageType": "ilustracao",
       "imagePrompt": "Cena de festa dentro do Don Toro: Juca sorridente recebido com aplausos por um grupo alegre; mesa com carnes na brasa, pão de alho e sucos; um senhor (Frank) o cumprimenta. Clima caloroso.",
       "image": "/images/juca-churrasco/final_chegou.png",

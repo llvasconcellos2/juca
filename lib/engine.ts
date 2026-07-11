@@ -62,18 +62,19 @@ export function formatHudValue(value: number, format: HudFormat = "number"): str
 }
 
 /**
- * Remove metadados de autoria (`imagePrompt`) de todos os nós antes do conteúdo cruzar a
- * fronteira servidor -> cliente. `imagePrompt` é só anotação de como a imagem foi gerada;
- * não deve ser renderizado nem enviado ao navegador.
+ * Remove metadados de autoria (`imagePrompt`, `imageType`) de todos os nós antes do conteúdo
+ * cruzar a fronteira servidor -> cliente. São só anotações de como/que tipo de imagem gerar;
+ * não devem ser renderizados nem enviados ao navegador (a engine usa só `imageAlt`).
  */
 export function stripAuthoringMetadata(content: StoryData): StoryData {
   return {
     ...content,
     nodes: Object.fromEntries(
       Object.entries(content.nodes).map(([id, node]) => {
-        if (!node.imagePrompt) return [id, node];
+        if (!node.imagePrompt && !node.imageType) return [id, node];
         const rest = { ...node };
         delete rest.imagePrompt;
+        delete rest.imageType;
         return [id, rest];
       })
     ),

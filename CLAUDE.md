@@ -81,7 +81,7 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
 - `components/ShareButton.tsx` — botão de **compartilhar** (client component); usa a Web Share API (`navigator.share`) com fallback de copiar link. O link aponta sempre para o início da história (`/historias/<slug>`), não para o nó atual. Aparece em todas as cenas.
 - `components/Hud.tsx` — HUD persistente de estado leve (dinheiro, tempo, etc.); só renderiza se `story.content.hud` existir. Região `aria-live="polite"` própria, separada da cena (ver seção 8). Genérico: itera `hud` e formata cada valor via `lib/engine.ts#formatHudValue`, sem conhecer nomes de variável.
 - `lib/types.ts` — tipos `Story`, `StoryData`, `StoryNode`, `Choice`, e os tipos de estado leve `Effect`, `Condition`, `HudItem`, `StoryVariables` (ver seção 6).
-- `lib/engine.ts` — funções puras e agnósticas de conteúdo para o estado leve: `applyEffect`/`applyEffects` (aplica efeitos a um objeto de variáveis), `evaluateCondition` (avalia uma condição), `formatHudValue` (formata um valor para o HUD conforme `HudFormat`), `stripAuthoringMetadata` (remove `imagePrompt` de todos os nós antes do conteúdo cruzar para o cliente). Sem nenhum nome de variável hardcoded.
+- `lib/engine.ts` — funções puras e agnósticas de conteúdo para o estado leve: `applyEffect`/`applyEffects` (aplica efeitos a um objeto de variáveis), `evaluateCondition` (avalia uma condição), `formatHudValue` (formata um valor para o HUD conforme `HudFormat`), `stripAuthoringMetadata` (remove `imagePrompt` e `imageType` de todos os nós antes do conteúdo cruzar para o cliente). Sem nenhum nome de variável hardcoded.
 - `lib/stories.ts` — **registro** das histórias (`stories`, `getStory(slug)`).
 - `stories/<slug>/` — cada história é **autocontida**:
   - `content.json` — o grafo de nós + metadados (`title`, `subtitle`, `choicesPrompt`, `shareImage`, `label` por nó, e opcionalmente `variables`/`hud`/`onEnter`/`condition`/`effects` — ver seção 6).
@@ -115,6 +115,7 @@ O conteúdo é **totalmente separado do código**. Cada história vive em `stori
       "image": "/images/<slug>/inicio.png", // opcional: imagem da cena (caminho público em /public)
       "imageAlt": "Descrição curta da imagem, sem repetir o texto narrado", // OBRIGATÓRIO se "image" existir
       "imagePrompt": "prompt usado para gerar a imagem", // opcional: só metadado de autoria, nunca renderizado
+      "imageType": "foto", // opcional: tipo de arte a gerar por IA ("foto" | "ilustracao"); metadado de autoria, nunca renderizado
       "choices": [{ "label": "Texto do botão", "target": "id_do_proximo_no" }],
     },
     "um_final": {
@@ -133,10 +134,11 @@ Regras do formato:
 - `label` é o rótulo lido pelo leitor de tela ao entrar na cena (heading com foco). Recomendado em todo nó; se faltar, o motor usa "Cena".
 - Nó final: `isEnding: true` e `choices: []` (o motor mostra "Jogar novamente").
 - Todo `target` de escolha deve apontar para um `id` existente em `nodes`.
-- **Imagem de cena (`image`/`imageAlt`/`imagePrompt`), opcional e retrocompatível** — um nó sem `image` renderiza só texto, exatamente como antes:
+- **Imagem de cena (`image`/`imageAlt`/`imagePrompt`/`imageType`), opcional e retrocompatível** — um nó sem `image` renderiza só texto, exatamente como antes:
   - `image`: caminho público do arquivo já gerado/aprovado (ex.: `/images/juca-churrasco/inicio.png`), servido de `public/images/<slug>/`.
   - `imageAlt`: texto alternativo curto, para leitor de tela. **Obrigatório sempre que `image` estiver presente** (`pnpm validate-stories` falha se faltar). Não deve duplicar o texto narrado — a pessoa ouviria a mesma coisa duas vezes (o validador avisa, não bloqueia, se `imageAlt` for idêntico ao `text`). Alt vazio só seria aceitável para imagem puramente decorativa, o que não é o caso aqui.
   - `imagePrompt`: **apenas metadado de autoria** (o prompt usado para gerar a imagem). Nunca é renderizado. É removido do conteúdo antes de cruzar a fronteira servidor → cliente por `lib/engine.ts#stripAuthoringMetadata`, chamada em `app/historias/[slug]/page.tsx` — não vai no HTML nem no payload React enviado ao navegador.
+  - `imageType`: **apenas metadado de autoria** — o tipo de arte que a IA vai gerar para a cena: `"foto"` (foto real de um lugar de Joinville combinada com o Juca em cartoon) ou `"ilustracao"` (só cartoon, a partir dos *character model sheets*). Como `imagePrompt`, nunca é renderizado e é removido por `stripAuthoringMetadata` antes de chegar ao cliente — a engine do jogo não usa (só o pipeline de geração de imagem). O único campo de imagem que a engine realmente consome é o `imageAlt`.
   - Renderização (`components/SceneImage.tsx`) usa `next/image` — o projeto **não** usa `output: export` (ver `next.config.ts`), então a otimização de imagem padrão do Next funciona normalmente, sem precisar de `images.unoptimized` nem loader customizado.
   - A imagem aparece **depois** do texto na ordem de leitura (o texto narrado é o principal; a imagem complementa) e nunca entra na ordem de tabulação (é `<img>`, não focável — o foco na troca de cena continua indo só para o heading, nunca para a imagem).
   - Se o arquivo referenciado não existir/falhar ao carregar, a cena degrada com elegância: a imagem some (sem ícone de imagem quebrada) e o texto continua funcionando normalmente.

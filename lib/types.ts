@@ -57,6 +57,13 @@ export interface StoryNode {
    * `lib/engine.ts`).
    */
   imagePrompt?: string;
+  /**
+   * Metadado de autoria: o tipo de arte que a IA vai gerar para a cena — "foto"
+   * (foto real de um lugar de Joinville combinada com o Juca em cartoon) ou "ilustracao"
+   * (só cartoon, a partir dos character model sheets). Como `imagePrompt`, nunca é
+   * renderizado e é removido antes de chegar ao cliente (ver `stripAuthoringMetadata`).
+   */
+  imageType?: "foto" | "ilustracao";
 }
 
 export interface StoryData {

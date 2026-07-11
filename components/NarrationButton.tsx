@@ -7,6 +7,12 @@ interface NarrationButtonProps {
   choicesText: string;
   rate: number;
   onRateChange: (rate: number) => void;
+  // Se true, esta instância (uma nova cena, via remount por `key`) já entra narrando sozinha —
+  // usado para continuar a narração automaticamente depois que o jogador já a ativou antes.
+  autoPlay: boolean;
+  // Avisa o StoryEngine que a narração foi ativada pela primeira vez, para que as próximas
+  // cenas herdem `autoPlay`.
+  onActivate: () => void;
 }
 
 type NarrationStatus = "idle" | "playing" | "paused";
@@ -35,6 +41,8 @@ export default function NarrationButton({
   choicesText,
   rate,
   onRateChange,
+  autoPlay,
+  onActivate,
 }: NarrationButtonProps) {
   const [status, setStatus] = useState<NarrationStatus>("idle");
   // cancel() dispara o onerror da fala anterior de forma assíncrona — sem essa guarda, esse
@@ -60,6 +68,15 @@ export default function NarrationButton({
     return () => {
       window.speechSynthesis?.cancel();
     };
+  }, []);
+
+  // Continua a narração sozinha ao entrar numa cena nova, se o jogador já a ativou antes.
+  // Roda uma vez no mount desta instância (cada cena é uma instância nova, via `key`).
+  useEffect(() => {
+    if (autoPlay && supported) {
+      speakFrom("scene", 0, rate);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!supported) return null;
@@ -116,6 +133,7 @@ export default function NarrationButton({
       setStatus("playing");
       return;
     }
+    onActivate();
     speakFrom("scene", 0, rate);
   }
 

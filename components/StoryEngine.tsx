@@ -20,8 +20,9 @@ export default function StoryEngine({ story }: StoryEngineProps) {
   const storyUrl = `/historias/${story.slug}`;
 
   const computeInitialVars = useCallback(
-    (): StoryVariables => applyEffects(s.variables ?? {}, s.nodes[s.start]?.onEnter),
-    [s.variables, s.nodes, s.start]
+    (): StoryVariables =>
+      applyEffects(s.variables ?? {}, s.nodes[s.start]?.onEnter),
+    [s.variables, s.nodes, s.start],
   );
 
   const [currentId, setCurrentId] = useState<string>(s.start);
@@ -31,12 +32,15 @@ export default function StoryEngine({ story }: StoryEngineProps) {
   // Velocidade da narração (multiplicador). Fica no motor, não no NarrationButton, para
   // persistir entre trocas de cena (o NarrationButton é remontado via `key` a cada cena).
   const [narrationRate, setNarrationRate] = useState(1);
+  // Uma vez que o jogador aciona "Ouvir cena", a narração passa a continuar sozinha nas
+  // próximas cenas (cada uma é uma instância nova de NarrationButton, via `key`).
+  const [narrationActivated, setNarrationActivated] = useState(false);
 
   const node = s.nodes[currentId];
   const sceneLabel = node.label ?? "Cena";
 
   const visibleChoices = node.choices.filter(
-    (choice) => !choice.condition || evaluateCondition(vars, choice.condition)
+    (choice) => !choice.condition || evaluateCondition(vars, choice.condition),
   );
 
   const choicesText = node.isEnding
@@ -45,7 +49,11 @@ export default function StoryEngine({ story }: StoryEngineProps) {
 
   // Narração da cena: label (rótulo de acessibilidade), depois o alt da imagem (se houver),
   // depois o texto — na mesma ordem de leitura visual do SceneView (label > imagem > texto).
-  const sceneNarrationText = [sceneLabel, node.image ? node.imageAlt : null, node.text]
+  const sceneNarrationText = [
+    sceneLabel,
+    node.image ? node.imageAlt : null,
+    node.text,
+  ]
     .filter((part): part is string => Boolean(part))
     .join(". ");
 
@@ -55,8 +63,8 @@ export default function StoryEngine({ story }: StoryEngineProps) {
     new Set(
       visibleChoices
         .map((choice) => s.nodes[choice.target]?.image)
-        .filter((src): src is string => Boolean(src))
-    )
+        .filter((src): src is string => Boolean(src)),
+    ),
   );
 
   useEffect(() => {
@@ -67,12 +75,14 @@ export default function StoryEngine({ story }: StoryEngineProps) {
     (targetId: string, effects?: Effect[]) => {
       setVisible(false);
       setTimeout(() => {
-        setVars((prev) => applyEffects(applyEffects(prev, effects), s.nodes[targetId]?.onEnter));
+        setVars((prev) =>
+          applyEffects(applyEffects(prev, effects), s.nodes[targetId]?.onEnter),
+        );
         setCurrentId(targetId);
         setVisible(true);
       }, 200);
     },
-    [s.nodes]
+    [s.nodes],
   );
 
   const restart = useCallback(() => {
@@ -107,7 +117,10 @@ export default function StoryEngine({ story }: StoryEngineProps) {
           </Link>
           <ShareButton url={storyUrl} title={s.title} text={s.subtitle} />
         </div>
-        <div className="relative w-40 h-52 drop-shadow-2xl" aria-hidden="true">
+        <div
+          className="relative w-full h-52 drop-shadow-2xl"
+          aria-hidden="true"
+        >
           <Image
             src={story.cover}
             alt=""
@@ -130,10 +143,7 @@ export default function StoryEngine({ story }: StoryEngineProps) {
       {s.hud && <Hud hud={s.hud} vars={vars} />}
 
       {/* Main content */}
-      <main
-        id="main-content"
-        className="w-full max-w-2xl"
-      >
+      <main id="main-content" className="w-full max-w-2xl">
         <div
           className="transition-opacity duration-200"
           style={{ opacity: visible ? 1 : 0 }}
@@ -147,6 +157,8 @@ export default function StoryEngine({ story }: StoryEngineProps) {
                 choicesText={choicesText}
                 rate={narrationRate}
                 onRateChange={setNarrationRate}
+                autoPlay={narrationActivated}
+                onActivate={() => setNarrationActivated(true)}
               />
             </div>
             <SceneView
@@ -195,7 +207,7 @@ export default function StoryEngine({ story }: StoryEngineProps) {
                     />
                   </li>
                 ))}
-            </ul>
+              </ul>
             </nav>
           )}
         </div>
@@ -203,7 +215,10 @@ export default function StoryEngine({ story }: StoryEngineProps) {
 
       {/* Footer */}
       <footer className="mt-12 text-white/30 text-xs text-center">
-        <p>Use Tab para navegar · Enter ou Espaço para escolher · &ldquo;Ouvir cena&rdquo; para narração em voz alta</p>
+        <p>
+          Use Tab para navegar · Enter ou Espaço para escolher · &ldquo;Ouvir
+          cena&rdquo; para narração em voz alta
+        </p>
       </footer>
     </div>
   );

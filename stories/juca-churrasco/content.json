@@ -17,7 +17,7 @@
       "imageType": "foto",
       "imagePrompt": "Juca em primeiro plano na calçada diante do arco do Pórtico de Joinville ao entardecer, sorrindo, celular junto ao rosto, bengala branca na outra mão.",
       "image": "/images/juca-churrasco/inicio.png",
-      "imageAlt": "Juca, de chapéu e com a bengala branca, sorri segurando o celular junto ao rosto diante do grande arco do Pórtico de Joinville.",
+      "imageAlt": "Juca, de chapéu e com a bengala branca, sorri diante do grande arco do Pórtico de Joinville.",
       "isEnding": false,
       "choices": [
         {
@@ -64,7 +64,7 @@
     },
     "on_ponto_ajuda": {
       "label": "Pedindo ajuda para achar o ponto",
-      "text": "— Moço, por favor, onde fica o ponto de ônibus? — perguntou o Juca.\n— É atravessando a rua. Vem, eu te levo — disse o rapaz.\n\nAtravessaram juntos e, num instante, o Juca já tava no ponto.\n\n— Viu? Pedir ajuda não tira pedaço. Tira é o atraso! — riu ele.",
+      "text": "— Moço, por favor, onde fica o ponto de ônibus? — perguntou o Juca.\n\n— É atravessando a rua. Vem, eu te levo — disse o rapaz.\n\nAtravessaram juntos e, num instante, o Juca já tava no ponto.\n\n— Viu? Pedir ajuda não tira pedaço. Tira é o atraso! — riu ele.",
       "imageType": "ilustracao",
       "imagePrompt": "Juca de braço dado com um rapaz gentil atravessando a faixa de pedestres, bengala branca à frente.",
       "image": "/images/juca-churrasco/on_ponto_ajuda.png",

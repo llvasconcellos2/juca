@@ -98,7 +98,7 @@
     },
     "on_onibus_errado": {
       "label": "Ônibus errado",
-      "text": "O Juca entrou no primeiro ônibus que parou. Depois de umas curvas, sentiu que aquilo tava indo pro lado errado.\n\n— Ô motorista, esse aqui passa perto do Don Toro?\n— Esse não, amigo! Mas relaxa: desce no próximo terminal que eu te explico o caminho certo.\n\nO Juca desceu num terminal, com um tantão de tempo a menos. Nada de pânico — mas agora tem que decidir.",
+      "text": "O Juca entrou no primeiro ônibus que parou. Depois de umas curvas, sentiu que aquilo tava indo pro lado errado.\n\n— Ô motorista, esse aqui passa perto do Don Toro?\n\n— Esse não, amigo! Mas relaxa: desce no próximo terminal que eu te explico o caminho certo.\n\nO Juca desceu num terminal, com um tantão de tempo a menos. Nada de pânico — mas agora tem que decidir.",
       "imageType": "ilustracao",
       "imagePrompt": "Juca descendo de um ônibus num terminal, expressão de ops; o motorista à porta aponta a direção certa.",
       "image": "/images/juca-churrasco/on_onibus_errado.png",

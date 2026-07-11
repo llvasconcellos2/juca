@@ -43,6 +43,12 @@ export default function StoryEngine({ story }: StoryEngineProps) {
     ? "Fim da história! Para jogar novamente, pressione o botão Jogar novamente."
     : `${s.choicesPrompt} ${visibleChoices.map((c, i) => `Opção ${i + 1}: ${c.label}`).join(". ")}.`;
 
+  // Narração da cena: label (rótulo de acessibilidade), depois o alt da imagem (se houver),
+  // depois o texto — na mesma ordem de leitura visual do SceneView (label > imagem > texto).
+  const sceneNarrationText = [sceneLabel, node.image ? node.imageAlt : null, node.text]
+    .filter((part): part is string => Boolean(part))
+    .join(". ");
+
   // Pré-carrega a imagem dos próximos nós possíveis para evitar "flash" ao navegar.
   // React 19 hoisteia <link> renderizado em qualquer ponto da árvore para o <head>.
   const nextImages = Array.from(
@@ -137,7 +143,7 @@ export default function StoryEngine({ story }: StoryEngineProps) {
             <div className="flex flex-wrap justify-end gap-2 mb-4">
               <NarrationButton
                 key={currentId}
-                text={node.text}
+                text={sceneNarrationText}
                 choicesText={choicesText}
                 rate={narrationRate}
                 onRateChange={setNarrationRate}

@@ -30,6 +30,8 @@ export default function SceneView({
       >
         {sceneLabel}
       </h2>
+      {/* A imagem vem entre o label e o texto na ordem de leitura/DOM (ver CLAUDE.md, seção 8). */}
+      {image && imageAlt && <SceneImage key={image} src={image} alt={imageAlt} />}
       {paragraphs.map((para, i) => (
         <p
           key={i}
@@ -39,9 +41,6 @@ export default function SceneView({
           {para}
         </p>
       ))}
-      {/* A imagem vem DEPOIS do texto na ordem de leitura: o texto narrado é o principal,
-          a imagem complementa (ver CLAUDE.md, seção 8). */}
-      {image && imageAlt && <SceneImage key={image} src={image} alt={imageAlt} />}
     </article>
   );
 }

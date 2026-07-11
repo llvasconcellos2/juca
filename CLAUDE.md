@@ -88,8 +88,9 @@ node script-testing/verify-juca.mjs  # em outro, depois que localhost:3000 subir
   - `index.ts` — monta o objeto `Story` (importa `content.json` + `cover.png`).
   - `cover.png` — capa (import otimizado pelo `next/image`, exibição in-app).
   - `roteiro.md` — roteiro-fonte da história + notas de acessibilidade (arquivado junto do conteúdo).
-- `public/juca.png` — imagem de compartilhamento/OG (URL pública absoluta que os crawlers buscam; **não** é o mesmo que a `cover.png` importada).
-- `public/images/<slug>/` — convenção para imagens de CENA (campo `image` de um nó, ver seção 6). Caminho público, ex.: `/images/juca-churrasco/inicio.png`. Diferente de `cover.png` (capa da história, importada) e de `juca.png` (imagem de compartilhamento/OG).
+- `public/juca-og.png` — imagem de compartilhamento/OG **geral** (home `/`, PNG gerado a partir de `public/juca.svg` — WhatsApp e a maioria dos apps de chat não renderizam SVG em preview de link, só PNG/JPEG; script de geração em `script-testing/generate-og-image.mjs`). Cada história usa seu próprio `cover.png` como imagem de OG por padrão (ver `shareImage` na seção 6); `juca-og.png` só vale para a home ou como override manual via `shareImage`.
+- `public/juca.svg` / `public/juca.png` — logo/ícone fonte (favicon e afins); **não** use direto como `og:image` (SVG não é confiável em preview de link, e `juca.png` foi substituído por `juca-og.png` como imagem OG da home).
+- `public/images/<slug>/` — convenção para imagens de CENA (campo `image` de um nó, ver seção 6). Caminho público, ex.: `/images/juca-churrasco/inicio.png`. Diferente de `cover.png` (capa da história, importada, também usada como OG) e de `juca-og.png` (imagem de compartilhamento/OG da home).
 - `assets/` — arquivos guardados de imagens, logos, icones, etc. Serve mais como **referência histórica** e consulta, fora do build (não é `public/` nem `stories/`).
 - `script-testing/` — scripts de teste/verificação manual guardados para histórico (ver seção 4).
 - Configs: `next.config.ts`, `tsconfig.json` (alias `@/*` → raiz), `eslint.config.mjs`, `postcss.config.mjs`.
@@ -103,7 +104,7 @@ O conteúdo é **totalmente separado do código**. Cada história vive em `stori
   "title": "Título da história",
   "subtitle": "Subtítulo curto (usado no header e como descrição/OG)",
   "choicesPrompt": "Pergunta que introduz as escolhas (ex.: O que Juca faz?)",
-  "shareImage": "/juca.png", // caminho público da imagem OG (opcional; default /juca.png)
+  "shareImage": "/algo.png", // caminho público da imagem OG (opcional; default: cover.png da própria história)
   "language": "pt-BR",
   "audience": "7-14",
   "start": "inicio", // id do nó inicial

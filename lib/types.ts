@@ -72,7 +72,7 @@ export interface StoryData {
   subtitle: string;
   /** Pergunta que introduz as escolhas (ex.: "O que Juca faz?"). */
   choicesPrompt: string;
-  /** Caminho público da imagem de compartilhamento/OG. Default: "/juca.png". */
+  /** Caminho público da imagem de compartilhamento/OG. Sem isso, usa o cover.png da própria história. */
   shareImage?: string;
   language: string;
   audience: string;

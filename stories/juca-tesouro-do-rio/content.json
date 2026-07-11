@@ -2,7 +2,6 @@
   "title": "Juca e a Caça ao Tesouro do Rio",
   "subtitle": "Uma história interativa de Joinville",
   "choicesPrompt": "O que Juca faz?",
-  "shareImage": "/juca.png",
   "language": "pt-BR",
   "audience": "7-14",
   "start": "inicio",

@@ -15,8 +15,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const story = getStory(slug);
   if (!story) return {};
 
-  const { title, subtitle, shareImage = "/juca.png" } = story.content;
+  const { title, subtitle, shareImage } = story.content;
   const url = `/historias/${slug}`;
+
+  // Sem `shareImage` explícito no content.json, o preview de compartilhamento (WhatsApp etc.)
+  // usa a capa da própria história.
+  const image = shareImage ?? story.cover.src;
+  const imageWidth = shareImage ? 1200 : story.cover.width;
+  const imageHeight = shareImage ? 630 : story.cover.height;
 
   return {
     title,
@@ -28,13 +34,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       url,
       type: "website",
       locale: "pt_BR",
-      images: [{ url: shareImage, width: 1200, height: 630, alt: title }],
+      images: [{ url: image, width: imageWidth, height: imageHeight, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: subtitle,
-      images: [shareImage],
+      images: [image],
     },
   };
 }

@@ -1,4 +1,5 @@
 <!-- BACK TO TOP ANCHOR -->
+
 <a id="readme-top"></a>
 
 <!-- LOGO -->
@@ -15,13 +16,14 @@
 
   <br />
 
-  <a href="https://leonardo-vasconcellos.vercel.app/portfolio/juca"
-    ><strong>View it live »</strong></a>
+<a href="https://juca.vercel.app/"><strong>View it live »</strong></a>
+
 </div>
 
 <br />
 
 <!-- SHIELDS -->
+
 [![Creator Website][website-shield]][website-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -44,6 +46,7 @@
 </details>
 
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
 [![Product Screenshot][product-screenshot]](https://leonardo-vasconcellos.vercel.app/portfolio/juca)
@@ -54,11 +57,11 @@
 
 <!-- END INTRO -->
 
-The reader reads *or listens to* a scene and picks, with real buttons, what happens next; each story is a branching graph of nodes with different endings. The hero is **Juca**, a young, blind alligator from the Cachoeira River in Joinville, Brazil, who finds treasures using smell and hearing — the protagonist himself mirrors the audience the project wants to welcome.
+The reader reads _or listens to_ a scene and picks, with real buttons, what happens next; each story is a branching graph of nodes with different endings. The hero is **Juca**, a young, blind alligator from the Cachoeira River in Joinville, Brazil, who finds treasures using smell and hearing — the protagonist himself mirrors the audience the project wants to welcome.
 
-The first story, *Juca e a Caça ao Tesouro do Rio*, branches into two paths and two endings. The second, *Juca e a Corrida do Churrasco*, introduces **lightweight state** (money and time) that changes as you choose and unlocks or hides options — a race against the clock (and hunger) to reach a barbecue across town.
+The first story, _Juca e a Caça ao Tesouro do Rio_, branches into two paths and two endings. The second, _Juca e a Corrida do Churrasco_, introduces **lightweight state** (money and time) that changes as you choose and unlocks or hides options — a race against the clock (and hunger) to reach a barbecue across town.
 
-The non-negotiable premise is **accessibility first**: the experience must *genuinely work* with screen readers (NVDA, JAWS, VoiceOver, Narrator) and keyboard navigation — not merely "be compatible." Choices are real buttons reachable by Tab and fired with Enter/Space; on every scene change, focus moves to the new text so the screen reader announces it; there is a skip link, high contrast, an always-visible focus ring, and no information conveyed by color alone. In-browser narration (Web Speech API, pt-BR) with speed control, a native share button, and per-scene illustrations round out the experience.
+The non-negotiable premise is **accessibility first**: the experience must _genuinely work_ with screen readers (NVDA, JAWS, VoiceOver, Narrator) and keyboard navigation — not merely "be compatible." Choices are real buttons reachable by Tab and fired with Enter/Space; on every scene change, focus moves to the new text so the screen reader announces it; there is a skip link, high contrast, an always-visible focus ring, and no information conveyed by color alone. In-browser narration (Web Speech API, pt-BR) with speed control, a native share button, and per-scene illustrations round out the experience.
 
 Architecturally, the **engine is fully separated from the content**: the React components are generic and story-agnostic, while each story is self-contained under `stories/<slug>/` (a JSON node graph, cover art, and the source script). A graph validator (`pnpm validate-stories`) guarantees no node is unreachable, choice-less, or missing image alt text — keeping accessibility verifiable with every new story that ships.
 
@@ -69,6 +72,7 @@ Architecturally, the **engine is fully separated from the content**: the React c
 - **Made every scene work hands-free and shareable out of the box** — in-browser narration (Web Speech API) with speed control, per-scene AI illustrations, and native share with a copy-link fallback — so the stories reach kids with no app install and no paid TTS bill.
 
 <!-- SCREENSHOTS -->
+
 ## Screenshots
 
 <div align="center" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
@@ -81,6 +85,7 @@ Architecturally, the **engine is fully separated from the content**: the React c
 </div>
 
 <!-- BUILT WITH -->
+
 ## Built With
 
 <!-- LANGUAGES -->
@@ -105,6 +110,7 @@ Architecturally, the **engine is fully separated from the content**: the React c
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="20" />           | Node.js      | scripts |
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 This project uses **pnpm** and Node.js **22**.
@@ -136,6 +142,7 @@ node script-testing/verify-juca.mjs
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
+
 ## Roadmap
 
 This project repository is for archive purposes only. No new features or issues are being tracked.
@@ -143,6 +150,7 @@ This project repository is for archive purposes only. No new features or issues 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTRIBUTORS -->
+
 ## Contributors
 
 <a href="https://github.com/llvasconcellos2/juca/graphs/contributors">
@@ -152,6 +160,7 @@ This project repository is for archive purposes only. No new features or issues 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTACT -->
+
 ## Contact
 
 [Leonardo Vasconcellos - Website](https://leonardo-vasconcellos.vercel.app/) — [LinkedIn](https://www.linkedin.com/in/llvasconcellos)

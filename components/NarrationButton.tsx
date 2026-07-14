@@ -36,6 +36,37 @@ function subscribe() {
   return () => {};
 }
 
+// Ordem de preferência por nome, para escolher a mesma voz pt-BR de forma consistente no
+// mesmo aparelho (motores diferentes por fabricante nomeiam suas vozes de formas diferentes).
+// A Web Speech API não expõe gênero da voz, então isso é melhor esforço: não força uma voz
+// masculina em aparelhos cuja única voz pt-BR instalada é feminina.
+const PREFERRED_VOICE_NAMES = [
+  "Google português do Brasil",
+  "Microsoft Antonio Online (Natural) - Portuguese (Brazil)",
+  "Luciana",
+];
+
+function pickNarrationVoice(
+  voices: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice | null {
+  const ptVoices = voices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith("pt"),
+  );
+  if (ptVoices.length === 0) return null;
+
+  const ptBrVoices = ptVoices.filter(
+    (voice) => voice.lang.toLowerCase() === "pt-br",
+  );
+  const candidates = ptBrVoices.length > 0 ? ptBrVoices : ptVoices;
+
+  for (const preferredName of PREFERRED_VOICE_NAMES) {
+    const match = candidates.find((voice) => voice.name === preferredName);
+    if (match) return match;
+  }
+
+  return candidates[0];
+}
+
 export default function NarrationButton({
   text,
   choicesText,
@@ -56,11 +87,28 @@ export default function NarrationButton({
   // 0 e a troca de velocidade reinicia a partir do começo do segmento atual.
   const segmentRef = useRef<NarrationSegment>("scene");
   const charIndexRef = useRef(0);
+  // Voz pt-BR escolhida, cacheada para não reprocessar a lista a cada fala.
+  const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const supported = useSyncExternalStore(
     subscribe,
     () => "speechSynthesis" in window,
     () => false,
   );
+
+  // Aquece o motor de TTS e resolve a voz assim que possível, em vez de só no primeiro clique —
+  // no Chrome/Android a lista de vozes carrega de forma assíncrona (evento `voiceschanged`) e
+  // acionar isso cedo evita que a primeira fala do usuário fique esperando o motor "acordar".
+  useEffect(() => {
+    if (!supported) return;
+    const resolveVoice = () => {
+      voiceRef.current = pickNarrationVoice(window.speechSynthesis.getVoices());
+    };
+    resolveVoice();
+    window.speechSynthesis.addEventListener("voiceschanged", resolveVoice);
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", resolveVoice);
+    };
+  }, [supported]);
 
   // Cancel any ongoing narration when this instance unmounts. The parent remounts this
   // component (via `key`) on scene change, so unmount = scene change.
@@ -98,6 +146,7 @@ export default function NarrationButton({
       sourceText.slice(startOffset),
     );
     utterance.lang = "pt-BR";
+    if (voiceRef.current) utterance.voice = voiceRef.current;
     utterance.rate = BASE_RATE * speedMultiplier;
     utterance.pitch = 1;
     utterance.onboundary = (event) => {
@@ -117,7 +166,13 @@ export default function NarrationButton({
       }
     };
 
-    window.speechSynthesis.cancel();
+    // cancel() antes de speak() é necessário para interromper uma fala em andamento, mas
+    // chamá-lo sem necessidade (ex.: primeiro clique, nada tocando) é o gatilho conhecido de um
+    // atraso de vários segundos no motor de TTS do Chrome/Android — por isso só cancela quando
+    // realmente há algo a cancelar.
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+    }
     window.speechSynthesis.speak(utterance);
     setStatus("playing");
   }

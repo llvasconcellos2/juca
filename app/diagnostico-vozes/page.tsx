@@ -131,7 +131,7 @@ export default function DiagnosticoVozesPage() {
           Diagnóstico de vozes de narração
         </h1>
         <p className="text-white/60 text-sm mb-6">
-          Ferramenta temporária, fora do jogo, para identificar o nome exato
+          Ferramenta de diagnóstico, fora do jogo, para identificar o nome exato
           de uma voz instalada neste aparelho/navegador. Toque em
           &ldquo;Testar&rdquo; para ouvir cada voz e em &ldquo;Copiar
           nome&rdquo; para pegar o nome exato de quem soar melhor. As vozes em
